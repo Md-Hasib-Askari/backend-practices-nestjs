@@ -73,6 +73,29 @@
             color: var(--muted)
         }
 
+        .route-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: .9rem
+        }
+
+        .route-link {
+            font-size: 11px;
+            letter-spacing: .03em;
+            padding: 4px 10px;
+            border-radius: 99px;
+            border: 0.5px solid var(--border2);
+            color: var(--muted);
+            text-decoration: none;
+            transition: all .15s
+        }
+
+        .route-link:hover {
+            background: var(--surface2);
+            color: var(--text)
+        }
+
         .wrap {
             max-width: 900px;
             margin: 0 auto;
@@ -404,6 +427,16 @@
         <h1><em>Multi-Tenant</em> Architecture</h1>
         <p class="subtitle">Tenant isolation strategies, dynamic connections, per-tenant config — beginner to advanced
         </p>
+        <nav class="route-nav" aria-label="Practice routes">
+            <a class="route-link" href="../nestjs-reference.html">Reference</a>
+            <a class="route-link" href="../01-redis-nestjs/redis-guided-exercises.html">Redis</a>
+            <a class="route-link" href="../02-mongodb/mongodb-exercises.html">MongoDB</a>
+            <a class="route-link" href="../03-authentication-nestjs/authentication-exercises.html">Auth</a>
+            <a class="route-link" href="../04-role-based-auth-nestjs/rbac-exercises.html">RBAC</a>
+            <a class="route-link" href="../05-multi-tenant-architecture/multi-tanent-exercises.html">Multi-Tenant</a>
+            <a class="route-link" href="../06-rate-limit-nestjs/rate-limiting-exercises.html">Rate Limit</a>
+            <a class="route-link" href="../07-csrf-csp/csrf-csp-practice.html">CSRF/CSP</a>
+        </nav>
     </header>
     <div class="wrap">
         <div class="stat-row">
