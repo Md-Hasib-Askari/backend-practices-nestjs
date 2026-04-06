@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MongoDB in NestJS — Beginner to Advanced</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #0c0f0e;
+            --surface: #141917;
+            --surface2: #1c2220;
+            --border: rgba(255, 255, 255, 0.07);
+            --border2: rgba(255, 255, 255, 0.13);
+            --text: #e0e8e4;
+            --muted: #6b8077;
+            --accent: #4DB380;
+            --accent-dim: rgba(77, 179, 128, 0.12);
+            --amber: #d4a843;
+            --coral: #c96b4a;
+            --blue: #5b9bd5;
+            --font-mono: 'Fira Code', 'Cascadia Code', monospace;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 15px;
+            line-height: 1.65;
+            min-height: 100vh
+        }
+
+        header {
+            padding: 3rem 2rem 1.5rem;
+            max-width: 900px;
+            margin: 0 auto
+        }
+
+        .eyebrow {
+            font-size: 11px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 500;
+            margin-bottom: .6rem
+        }
+
+        h1 {
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 300;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: .4rem
+        }
+
+        h1 em {
+            color: var(--accent);
+            font-style: normal;
+            font-weight: 500
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        .wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 1.75rem
+        }
+
+        .stat {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 10px;
+            padding: .85rem 1rem
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 3px
+        }
+
+        .stat-val {
+            font-size: 21px;
+            font-weight: 500;
+            color: #fff
+        }
+
+        .progress-wrap {
+            background: var(--surface);
+            border-radius: 99px;
+            height: 3px;
+            margin-bottom: 1.75rem;
+            overflow: hidden
+        }
+
+        .progress-fill {
+            background: var(--accent);
+            height: 3px;
+            border-radius: 99px;
+            transition: width .4s ease;
+            width: 0%
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem
+        }
+
+        .tab {
+            padding: 5px 14px;
+            border-radius: 99px;
+            border: 0.5px solid var(--border2);
+            background: transparent;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--muted);
+            font-family: inherit;
+            transition: all .15s
+        }
+
+        .tab:hover {
+            background: var(--surface2);
+            color: var(--text)
+        }
+
+        .tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #0c0f0e;
+            font-weight: 500
+        }
+
+        .card {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            transition: border-color .2s
+        }
+
+        .card:hover {
+            border-color: var(--border2)
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 1.1rem 1.25rem;
+            cursor: pointer;
+            user-select: none
+        }
+
+        .num {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--surface2);
+            border: 0.5px solid var(--border2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+            flex-shrink: 0;
+            margin-top: 1px;
+            transition: all .2s
+        }
+
+        .num.done {
+            background: rgba(77, 179, 128, .15);
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .title-wrap {
+            flex: 1
+        }
+
+        .lesson-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .lesson-sub {
+            font-size: 12.5px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-weight: 400;
+            letter-spacing: .04em
+        }
+
+        .badge.beginner {
+            background: rgba(91, 155, 213, .13);
+            color: #7bb5e8;
+            border: 0.5px solid rgba(91, 155, 213, .25)
+        }
+
+        .badge.intermediate {
+            background: rgba(212, 168, 67, .12);
+            color: #e0bc6a;
+            border: 0.5px solid rgba(212, 168, 67, .25)
+        }
+
+        .badge.advanced {
+            background: rgba(201, 107, 74, .12);
+            color: #e08a68;
+            border: 0.5px solid rgba(201, 107, 74, .25)
+        }
+
+        .chevron {
+            font-size: 16px;
+            color: var(--muted);
+            transition: transform .2s;
+            flex-shrink: 0;
+            margin-top: 5px
+        }
+
+        .card-body {
+            display: none;
+            padding: 0 1.25rem 1.25rem;
+            border-top: 0.5px solid var(--border)
+        }
+
+        .card-body.open {
+            display: block
+        }
+
+        .concept-box {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: .9rem 1.1rem;
+            margin: 1rem 0
+        }
+
+        .section-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--muted);
+            font-weight: 500;
+            margin-bottom: 7px
+        }
+
+        .concept-text {
+            font-size: 13.5px;
+            color: #bfcfca;
+            line-height: 1.7
+        }
+
+        pre {
+            background: #080d0b;
+            border: 0.5px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            font-size: 12px;
+            line-height: 1.7;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            margin-bottom: 1rem;
+            color: #bfcfca;
+            white-space: pre
+        }
+
+        .kw {
+            color: #89ddff
+        }
+
+        .str {
+            color: #9FE1CB
+        }
+
+        .cm {
+            color: #455952
+        }
+
+        .fn {
+            color: #82aaff
+        }
+
+        .cl {
+            color: #f0a070
+        }
+
+        .dec {
+            color: #c3e88d
+        }
+
+        .nl {
+            color: #f78c6c
+        }
+
+        .ex-box {
+            border: 0.5px solid rgba(77, 179, 128, .25);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            background: rgba(77, 179, 128, .05);
+            margin-bottom: 1rem
+        }
+
+        .ex-title {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 7px
+        }
+
+        .ex-body {
+            font-size: 13px;
+            color: #96b0a8;
+            line-height: 1.65;
+            margin-bottom: 7px
+        }
+
+        .steps {
+            padding-left: 1.1rem;
+            font-size: 12.5px;
+            color: #96b0a8;
+            line-height: 1.9
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap
+        }
+
+        .btn {
+            padding: 6px 15px;
+            border-radius: 7px;
+            border: 0.5px solid var(--border2);
+            background: transparent;
+            color: var(--text);
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .15s
+        }
+
+        .btn:hover {
+            background: var(--surface2)
+        }
+
+        .btn-done {
+            border-color: rgba(77, 179, 128, .35);
+            color: var(--accent)
+        }
+
+        .btn-done:hover {
+            background: rgba(77, 179, 128, .1)
+        }
+
+        .btn-done.active {
+            background: var(--accent);
+            color: #0c0f0e;
+            border-color: var(--accent);
+            font-weight: 500
+        }
+
+        @media(max-width:600px) {
+            .stat-row {
+                grid-template-columns: 1fr 1fr
+            }
+
+            ;
+
+            header,
+            .wrap {
+                padding-left: 1.25rem;
+                padding-right: 1.25rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="eyebrow">Interactive curriculum · NestJS Series</div>
+        <h1><em>MongoDB</em> with Mongoose</h1>
+        <p class="subtitle">Schemas, queries, aggregations, and production patterns — beginner to advanced</p>
+    </header>
+    <div class="wrap">
+        <div class="stat-row">
+            <div class="stat">
+                <div class="stat-label">Completed</div>
+                <div class="stat-val" id="s-done">0 / 9</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Level</div>
+                <div class="stat-val" id="s-level">Beginner</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Progress</div>
+                <div class="stat-val" id="s-pct">0%</div>
+            </div>
+        </div>
+        <div class="progress-wrap">
+            <div class="progress-fill" id="pbar"></div>
+        </div>
+        <div class="tabs">
+            <button class="tab active" onclick="filter('all',this)">All</button>
+            <button class="tab" onclick="filter('beginner',this)">Beginner</button>
+            <button class="tab" onclick="filter('intermediate',this)">Intermediate</button>
+            <button class="tab" onclick="filter('advanced',this)">Advanced</button>
+        </div>
+        <div id="lessons"></div>
+    </div>
+    <script>
+        const L = [
+            {
+                id: 1, level: 'beginner', title: 'Setup: MongooseModule in NestJS', sub: 'Connection, env config, MongooseModule.forRoot',
+                concept: 'NestJS integrates MongoDB via @nestjs/mongoose. MongooseModule.forRoot() registers the connection globally. Use MongooseModule.forRootAsync() to inject ConfigService for environment-based URI.',
+                code: `npm install @nestjs/mongoose mongoose
+
+<span class="cm">// app.module.ts</span>
+<span class="kw">import</span> { <span class="cl">MongooseModule</span> } <span class="kw">from</span> <span class="str">'@nestjs/mongoose'</span>;
+
+<span class="dec">@Module</span>({
+  imports: [
+    <span class="cl">MongooseModule</span>.<span class="fn">forRootAsync</span>({
+      imports: [<span class="cl">ConfigModule</span>],
+      inject: [<span class="cl">ConfigService</span>],
+      useFactory: (cfg: <span class="cl">ConfigService</span>) => ({
+        uri: cfg.<span class="fn">get</span>(<span class="str">'MONGODB_URI'</span>),
+      }),
+    }),
+  ],
+})
+<span class="kw">export class</span> <span class="cl">AppModule</span> {}`,
+                ex: {
+                    title: 'Exercise 1 — connect to MongoDB Atlas', body: 'Spin up a free Atlas cluster, get your connection string, store it in .env, and connect NestJS. Verify the app boots without errors.',
+                    steps: ['Create a free MongoDB Atlas account and cluster', 'Copy the connection string: mongodb+srv://...', 'Add MONGODB_URI to your .env file', 'Add MongooseModule.forRootAsync to AppModule', 'Run npm run start:dev and check for "MongooseModule connected"']
+                }
+            },
+
+            {
+                id: 2, level: 'beginner', title: 'Defining Schemas with @Schema and @Prop', sub: 'Schema decorators, types, validation, timestamps',
+                concept: 'Mongoose schemas are defined as TypeScript classes using @Schema() and @Prop() decorators. This gives you type safety plus Mongoose validation in one place.',
+                code: `<span class="cm">// product.schema.ts</span>
+<span class="kw">import</span> { <span class="cl">Prop</span>, <span class="cl">Schema</span>, <span class="cl">SchemaFactory</span> } <span class="kw">from</span> <span class="str">'@nestjs/mongoose'</span>;
+<span class="kw">import</span> { <span class="cl">Document</span> } <span class="kw">from</span> <span class="str">'mongoose'</span>;
+
+<span class="kw">export type</span> <span class="cl">ProductDocument</span> = <span class="cl">Product</span> & <span class="cl">Document</span>;
+
+<span class="dec">@Schema</span>({ timestamps: <span class="kw">true</span> })
+<span class="kw">export class</span> <span class="cl">Product</span> {
+  <span class="dec">@Prop</span>({ required: <span class="kw">true</span>, trim: <span class="kw">true</span> })
+  name: string;
+
+  <span class="dec">@Prop</span>({ required: <span class="kw">true</span>, min: 0 })
+  price: number;
+
+  <span class="dec">@Prop</span>({ <span class="kw">default</span>: <span class="kw">true</span> })
+  isActive: boolean;
+}
+
+<span class="kw">export const</span> ProductSchema = <span class="cl">SchemaFactory</span>.<span class="fn">createForClass</span>(<span class="cl">Product</span>);`,
+                ex: {
+                    title: 'Exercise 2 — build a User schema', body: 'Create a User schema with name, email (unique, lowercase), password, role (enum: user|admin), and createdAt.',
+                    steps: ['Create users/schemas/user.schema.ts', 'Add @Prop with unique: true and lowercase: true on email', 'Add @Prop with enum: [\'user\',\'admin\'] and default: \'user\' on role', 'Register it in UsersModule via MongooseModule.forFeature', 'Test with Postman or curl']
+                }
+            },
+
+            {
+                id: 3, level: 'beginner', title: 'CRUD with Mongoose Model injection', sub: '@InjectModel, find, create, findByIdAndUpdate, deleteOne',
+                concept: 'Inject the Mongoose Model with @InjectModel(ModelName.name). This gives you all Mongoose query methods. Always type the return as Document for proper TS inference.',
+                code: `<span class="cm">// products.service.ts</span>
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">ProductsService</span> {
+  <span class="kw">constructor</span>(
+    <span class="dec">@InjectModel</span>(<span class="cl">Product</span>.name)
+    <span class="kw">private</span> model: <span class="cl">Model</span>&lt;<span class="cl">ProductDocument</span>&gt;
+  ) {}
+
+  <span class="fn">findAll</span>() { <span class="kw">return</span> <span class="kw">this</span>.model.<span class="fn">find</span>().exec(); }
+
+  <span class="fn">findOne</span>(id: string) { <span class="kw">return</span> <span class="kw">this</span>.model.<span class="fn">findById</span>(id); }
+
+  <span class="fn">create</span>(dto: <span class="cl">CreateProductDto</span>) {
+    <span class="kw">return new</span> <span class="kw">this</span>.model(dto).<span class="fn">save</span>();
+  }
+
+  <span class="fn">update</span>(id: string, dto: <span class="cl">UpdateProductDto</span>) {
+    <span class="kw">return</span> <span class="kw">this</span>.model.<span class="fn">findByIdAndUpdate</span>(id, dto, { <span class="kw">new</span>: <span class="kw">true</span> });
+  }
+
+  <span class="fn">remove</span>(id: string) {
+    <span class="kw">return</span> <span class="kw">this</span>.model.<span class="fn">findByIdAndDelete</span>(id);
+  }
+}`,
+                ex: {
+                    title: 'Exercise 3 — full CRUD API', body: 'Wire up a complete REST CRUD for Products: POST /products, GET /products, GET /products/:id, PATCH /products/:id, DELETE /products/:id.',
+                    steps: ['Create ProductsController with all 5 routes', 'Inject ProductsService in the controller', 'Add validation with class-validator DTOs', 'Test all routes with Postman', 'Handle 404 with NotFoundException when findById returns null']
+                }
+            },
+
+            {
+                id: 4, level: 'beginner', title: 'Querying: filters, projection, sorting', sub: 'find(), select(), sort(), limit(), skip()',
+                concept: 'Mongoose queries are chainable. Use filter objects for WHERE conditions, .select() for field projection, .sort() for ordering, and .limit()/.skip() for pagination.',
+                code: `<span class="cm">// Filtered, projected, sorted, paginated query</span>
+<span class="fn">findFiltered</span>(query: <span class="cl">QueryDto</span>) {
+  <span class="kw">const</span> { page = <span class="nl">1</span>, limit = <span class="nl">10</span>, sort = <span class="str">'-createdAt'</span>, search } = query;
+  <span class="kw">const</span> filter = search
+    ? { name: { $regex: search, $options: <span class="str">'i'</span> } }
+    : {};
+
+  <span class="kw">return this</span>.model
+    .<span class="fn">find</span>(filter)
+    .<span class="fn">select</span>(<span class="str">'-__v -password'</span>)      <span class="cm">// exclude fields</span>
+    .<span class="fn">sort</span>(sort)
+    .<span class="fn">skip</span>((page - <span class="nl">1</span>) * limit)
+    .<span class="fn">limit</span>(limit)
+    .<span class="fn">lean</span>()                         <span class="cm">// plain JS object, faster</span>
+    .<span class="fn">exec</span>();
+}`,
+                ex: {
+                    title: 'Exercise 4 — add pagination and search to GET /products', body: 'Extend GET /products to accept ?page=1&limit=10&search=laptop&sort=-price query params. Return { data, total, page, pages }.',
+                    steps: ['Add a QueryDto with optional page, limit, sort, search fields', 'Use .countDocuments(filter) for total', 'Compute pages = Math.ceil(total / limit)', 'Return { data, total, page, pages } from the endpoint', 'Test with: GET /products?search=shirt&sort=-price&page=2']
+                }
+            },
+
+            {
+                id: 5, level: 'intermediate', title: 'Relationships: refs and populate()', sub: 'DBRef, @Prop type ref, populate, virtual populate',
+                concept: 'MongoDB references work via ObjectId refs. Define a @Prop with type: MongooseSchema.Types.ObjectId and ref: ModelName. Call .populate() to join. For reverse relations, use virtual populate.',
+                code: `<span class="cm">// order.schema.ts — reference to User</span>
+<span class="dec">@Prop</span>({ type: <span class="cl">MongooseSchema</span>.Types.ObjectId, ref: <span class="str">'User'</span>, required: <span class="kw">true</span> })
+userId: <span class="cl">Types</span>.ObjectId;
+
+<span class="dec">@Prop</span>([{ type: <span class="cl">MongooseSchema</span>.Types.ObjectId, ref: <span class="str">'Product'</span> }])
+products: <span class="cl">Types</span>.ObjectId[];
+
+<span class="cm">// service: populate on find</span>
+<span class="fn">findUserOrders</span>(userId: string) {
+  <span class="kw">return this</span>.orderModel
+    .<span class="fn">find</span>({ userId })
+    .<span class="fn">populate</span>(<span class="str">'userId'</span>, <span class="str">'name email'</span>)  <span class="cm">// select fields</span>
+    .<span class="fn">populate</span>(<span class="str">'products'</span>, <span class="str">'name price'</span>)
+    .<span class="fn">lean</span>().<span class="fn">exec</span>();
+}`,
+                ex: {
+                    title: 'Exercise 5 — orders with populated user and products', body: 'Create an Order schema that references User and Product. Implement GET /orders/:userId that returns orders with fully populated user and product details.',
+                    steps: ['Create order.schema.ts with userId and products refs', 'Register Order in OrdersModule', 'Implement findByUser with double .populate()', 'Test: create a user, create products, create an order, fetch orders']
+                }
+            },
+
+            {
+                id: 6, level: 'intermediate', title: 'Aggregation pipeline', sub: '$match, $group, $lookup, $project, $sort',
+                concept: 'The aggregation pipeline processes documents through stages. Use it for analytics, groupings, joins, and computed fields — far more powerful than find() for complex queries.',
+                code: `<span class="cm">// Sales report: revenue per category</span>
+<span class="fn">getSalesReport</span>() {
+  <span class="kw">return this</span>.orderModel.<span class="fn">aggregate</span>([
+    { $match: { status: <span class="str">'completed'</span> } },
+    { $unwind: <span class="str">'$items'</span> },
+    { $lookup: {
+        from: <span class="str">'products'</span>,
+        localField: <span class="str">'items.productId'</span>,
+        foreignField: <span class="str">'_id'</span>,
+        as: <span class="str">'product'</span>
+    }},
+    { $unwind: <span class="str">'$product'</span> },
+    { $group: {
+        _id: <span class="str">'$product.category'</span>,
+        totalRevenue: { $sum: { $multiply: [<span class="str">'$items.qty'</span>, <span class="str">'$product.price'</span>] }},
+        orderCount: { $sum: <span class="nl">1</span> }
+    }},
+    { $sort: { totalRevenue: <span class="nl">-1</span> } },
+  ]);
+}`,
+                ex: {
+                    title: 'Exercise 6 — build a sales analytics endpoint', body: 'Implement GET /analytics/sales that returns total revenue, order count, and average order value grouped by product category.',
+                    steps: ['Write an aggregate pipeline with $match, $group, $lookup', 'Add $project to rename and shape the output fields', 'Create GET /analytics/sales in a dedicated AnalyticsController', 'Seed 20+ orders with varied categories and test the endpoint']
+                }
+            },
+
+            {
+                id: 7, level: 'intermediate', title: 'Indexes and performance', sub: 'Single, compound, text, TTL indexes',
+                concept: 'Indexes are critical for performance at scale. Define them in the schema using SchemaFactory post-hooks or @Prop index options. Text indexes enable full-text search. TTL indexes auto-expire documents.',
+                code: `<span class="cm">// Define indexes on the schema</span>
+<span class="kw">export const</span> ProductSchema = <span class="cl">SchemaFactory</span>.<span class="fn">createForClass</span>(<span class="cl">Product</span>);
+
+<span class="cm">// Compound index: queries on category + price</span>
+ProductSchema.<span class="fn">index</span>({ category: <span class="nl">1</span>, price: <span class="nl">-1</span> });
+
+<span class="cm">// Text index: full-text search on name and description</span>
+ProductSchema.<span class="fn">index</span>({ name: <span class="str">'text'</span>, description: <span class="str">'text'</span> });
+
+<span class="cm">// TTL: auto-delete session docs after 1 hour</span>
+SessionSchema.<span class="fn">index</span>({ createdAt: <span class="nl">1</span> }, { expireAfterSeconds: <span class="nl">3600</span> });
+
+<span class="cm">// Use text search in a query</span>
+<span class="fn">textSearch</span>(q: string) {
+  <span class="kw">return this</span>.model.<span class="fn">find</span>({ $text: { $search: q } },
+    { score: { $meta: <span class="str">'textScore'</span> } })
+    .<span class="fn">sort</span>({ score: { $meta: <span class="str">'textScore'</span> } });
+}`,
+                ex: {
+                    title: 'Exercise 7 — add indexes and use explain()', body: 'Add a compound index on (category, price) to Products. Add a text index on name. Use .explain("executionStats") to confirm index usage.',
+                    steps: ['Add ProductSchema.index({ category: 1, price: -1 }) after schema creation', 'Add text index on name and description fields', 'Query with { $text: { $search: "laptop" } }', 'Run .explain("executionStats") and look for IXSCAN (not COLLSCAN)', 'Add a TTL index to a Sessions schema for 1-hour expiry']
+                }
+            },
+
+            {
+                id: 8, level: 'advanced', title: 'Transactions with sessions', sub: 'withTransaction, multi-document ACID, rollback',
+                concept: 'MongoDB supports multi-document ACID transactions since v4.0 (replica sets only). Use session.withTransaction() to wrap operations — any failure triggers automatic rollback. Essential for financial or inventory operations.',
+                code: `<span class="fn">transferStock</span>(fromId: string, toId: string, qty: number) {
+  <span class="kw">const</span> session = <span class="kw">await this</span>.connection.<span class="fn">startSession</span>();
+
+  <span class="kw">return</span> session.<span class="fn">withTransaction</span>(<span class="kw">async</span> () => {
+    <span class="kw">const</span> from = <span class="kw">await this</span>.model
+      .<span class="fn">findByIdAndUpdate</span>(fromId,
+        { $inc: { stock: -qty } },
+        { session, <span class="kw">new</span>: <span class="kw">true</span> }
+      );
+
+    <span class="kw">if</span> (from.stock &lt; <span class="nl">0</span>) <span class="kw">throw new</span> <span class="cl">Error</span>(<span class="str">'Insufficient stock'</span>);
+
+    <span class="kw">await this</span>.model.<span class="fn">findByIdAndUpdate</span>(toId,
+      { $inc: { stock: qty } },
+      { session }
+    );
+  });
+}`,
+                ex: {
+                    title: 'Exercise 8 — atomic order placement', body: 'Implement an order placement that atomically deducts stock from Products and creates an Order. If any product is out of stock, the entire transaction rolls back.',
+                    steps: ['Inject mongoose Connection alongside your models', 'Wrap both operations in session.withTransaction()', 'Throw if any product.stock goes below 0 inside the transaction', 'Test the rollback: try ordering more than available stock', 'Verify with MongoDB Compass that no partial writes occurred']
+                }
+            },
+
+            {
+                id: 9, level: 'advanced', title: 'Multi-tenancy with dynamic connections', sub: 'Per-tenant DBs, connection pooling, middleware',
+                concept: 'In multi-tenant SaaS apps, each tenant can have their own MongoDB database. NestJS supports this via dynamic connection creation per request. A middleware extracts the tenant identifier and attaches the correct connection.',
+                code: `<span class="cm">// tenant-db.service.ts</span>
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">TenantDbService</span> {
+  <span class="kw">private</span> connections = <span class="kw">new</span> <span class="cl">Map</span>&lt;string, <span class="cl">Connection</span>&gt;();
+
+  <span class="kw">async</span> <span class="fn">getConnection</span>(tenantId: string): <span class="cl">Promise</span>&lt;<span class="cl">Connection</span>&gt; {
+    <span class="kw">if</span> (<span class="kw">this</span>.connections.<span class="fn">has</span>(tenantId)) {
+      <span class="kw">return this</span>.connections.<span class="fn">get</span>(tenantId);
+    }
+    <span class="kw">const</span> conn = <span class="kw">await</span> createConnection(
+      <span class="str">\`\${process.env.MONGO_BASE_URI}/tenant_\${tenantId}\`</span>
+    );
+    <span class="kw">this</span>.connections.<span class="fn">set</span>(tenantId, conn);
+    <span class="kw">return</span> conn;
+  }
+}`,
+                ex: {
+                    title: 'Exercise 9 — tenant-aware repository', body: 'Build a TenantDbService that maintains a connection pool per tenant. Extract tenantId from the request header X-Tenant-ID and route all queries to the correct database.',
+                    steps: ['Create TenantDbService with a Map<tenantId, Connection> cache', 'Build a TenantMiddleware that reads X-Tenant-ID and calls getConnection()', 'Attach the connection to the request object', 'Create a TenantAwareRepository base class that uses request.tenantConn', 'Test: create two tenants, POST data to each, confirm data isolation']
+                }
+            }
+        ];
+
+        const done = new Set(JSON.parse(localStorage.getItem('mongo-done') || '[]'));
+        function save() { try { localStorage.setItem('mongo-done', JSON.stringify([...done])) } catch (e) { } }
+        function updateStats() {
+            const n = done.size, t = L.length;
+            document.getElementById('s-done').textContent = n + ' / ' + t;
+            document.getElementById('s-pct').textContent = Math.round(n / t * 100) + '%';
+            document.getElementById('pbar').style.width = (n / t * 100) + '%';
+            document.getElementById('s-level').textContent = n < 4 ? 'Beginner' : n < 7 ? 'Intermediate' : 'Advanced';
+        }
+        function render(f) {
+            const c = document.getElementById('lessons'); c.innerHTML = '';
+            L.filter(l => f === 'all' || l.level === f).forEach(l => {
+                const d = done.has(l.id);
+                const el = document.createElement('div'); el.className = 'card';
+                el.innerHTML = `<div class="card-header" onclick="toggle(${l.id})">
+      <div class="num ${d ? 'done' : ''}" id="n${l.id}">${d ? '✓' : l.id}</div>
+      <div class="title-wrap">
+        <div class="lesson-title">${l.title}<span class="badge ${l.level}">${l.level}</span></div>
+        <div class="lesson-sub">${l.sub}</div>
+      </div>
+      <div class="chevron" id="ch${l.id}">›</div>
+    </div>
+    <div class="card-body" id="b${l.id}">
+      <div class="concept-box"><div class="section-label">Concept</div><p class="concept-text">${l.concept}</p></div>
+      <pre>${l.code}</pre>
+      <div class="ex-box">
+        <div class="ex-title">${l.ex.title}</div>
+        <p class="ex-body">${l.ex.body}</p>
+        ${l.ex.steps ? '<ul class="steps">' + l.ex.steps.map(s => `<li>${s}</li>`).join('') + '</ul>' : ''}
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-done ${d ? 'active' : ''}" id="mb${l.id}" onclick="mark(${l.id})">${d ? '✓ Completed' : 'Mark complete'}</button>
+      </div>
+    </div>`;
+                c.appendChild(el);
+            });
+        }
+        function toggle(id) {
+            const b = document.getElementById('b' + id), ch = document.getElementById('ch' + id);
+            const o = b.classList.toggle('open'); ch.style.transform = o ? 'rotate(90deg)' : '';
+        }
+        function mark(id) {
+            done.has(id) ? done.delete(id) : done.add(id); save(); updateStats();
+            const b = document.getElementById('mb' + id), n = document.getElementById('n' + id);
+            if (done.has(id)) { b.classList.add('active'); b.textContent = '✓ Completed'; n.classList.add('done'); n.textContent = '✓'; }
+            else { b.classList.remove('active'); b.textContent = 'Mark complete'; n.classList.remove('done'); n.textContent = id; }
+        }
+        function filter(f, el) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); el.classList.add('active'); render(f); }
+        render('all'); updateStats();
+    </script>
+</body>
+
+</html>

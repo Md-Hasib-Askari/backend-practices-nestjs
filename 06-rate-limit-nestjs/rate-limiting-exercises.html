@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rate Limiting in NestJS — Beginner to Advanced</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #0d0810;
+            --surface: #150f1a;
+            --surface2: #1e1525;
+            --border: rgba(200, 130, 255, 0.07);
+            --border2: rgba(200, 130, 255, 0.15);
+            --text: #e8d8f8;
+            --muted: #6040a0;
+            --accent: #c084fc;
+            --accent-dim: rgba(192, 132, 252, 0.1);
+            --green: #4ecb8a;
+            --amber: #d4a843;
+            --coral: #e06870;
+            --blue: #60a8e8;
+            --font-mono: 'Fira Code', 'Cascadia Code', monospace;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 15px;
+            line-height: 1.65;
+            min-height: 100vh
+        }
+
+        header {
+            padding: 3rem 2rem 1.5rem;
+            max-width: 900px;
+            margin: 0 auto
+        }
+
+        .eyebrow {
+            font-size: 11px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 500;
+            margin-bottom: .6rem
+        }
+
+        h1 {
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 300;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: .4rem
+        }
+
+        h1 em {
+            color: var(--accent);
+            font-style: normal;
+            font-weight: 500
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        .wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 1.75rem
+        }
+
+        .stat {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 10px;
+            padding: .85rem 1rem
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 3px
+        }
+
+        .stat-val {
+            font-size: 21px;
+            font-weight: 500;
+            color: #fff
+        }
+
+        .progress-wrap {
+            background: var(--surface);
+            border-radius: 99px;
+            height: 3px;
+            margin-bottom: 1.75rem;
+            overflow: hidden
+        }
+
+        .progress-fill {
+            background: var(--accent);
+            height: 3px;
+            border-radius: 99px;
+            transition: width .4s ease;
+            width: 0%
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem
+        }
+
+        .tab {
+            padding: 5px 14px;
+            border-radius: 99px;
+            border: 0.5px solid var(--border2);
+            background: transparent;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--muted);
+            font-family: inherit;
+            transition: all .15s
+        }
+
+        .tab:hover {
+            background: var(--surface2);
+            color: var(--text)
+        }
+
+        .tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #0d0810;
+            font-weight: 500
+        }
+
+        .card {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            transition: border-color .2s
+        }
+
+        .card:hover {
+            border-color: var(--border2)
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 1.1rem 1.25rem;
+            cursor: pointer;
+            user-select: none
+        }
+
+        .num {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--surface2);
+            border: 0.5px solid var(--border2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+            flex-shrink: 0;
+            margin-top: 1px;
+            transition: all .2s
+        }
+
+        .num.done {
+            background: rgba(192, 132, 252, .15);
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .title-wrap {
+            flex: 1
+        }
+
+        .lesson-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .lesson-sub {
+            font-size: 12.5px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-weight: 400;
+            letter-spacing: .04em
+        }
+
+        .badge.beginner {
+            background: rgba(78, 203, 138, .12);
+            color: #7ae0b0;
+            border: 0.5px solid rgba(78, 203, 138, .25)
+        }
+
+        .badge.intermediate {
+            background: rgba(212, 168, 67, .12);
+            color: #e0c06a;
+            border: 0.5px solid rgba(212, 168, 67, .25)
+        }
+
+        .badge.advanced {
+            background: rgba(224, 104, 112, .12);
+            color: #e89098;
+            border: 0.5px solid rgba(224, 104, 112, .25)
+        }
+
+        .chevron {
+            font-size: 16px;
+            color: var(--muted);
+            transition: transform .2s;
+            flex-shrink: 0;
+            margin-top: 5px
+        }
+
+        .card-body {
+            display: none;
+            padding: 0 1.25rem 1.25rem;
+            border-top: 0.5px solid var(--border)
+        }
+
+        .card-body.open {
+            display: block
+        }
+
+        .concept-box {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: .9rem 1.1rem;
+            margin: 1rem 0
+        }
+
+        .section-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--muted);
+            font-weight: 500;
+            margin-bottom: 7px
+        }
+
+        .concept-text {
+            font-size: 13.5px;
+            color: #b090d8;
+            line-height: 1.7
+        }
+
+        .algo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: .75rem 0
+        }
+
+        .algo-card {
+            background: var(--surface);
+            border: 0.5px solid var(--border2);
+            border-radius: 7px;
+            padding: .75rem .9rem
+        }
+
+        .algo-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: #fff;
+            margin-bottom: 4px
+        }
+
+        .algo-desc {
+            font-size: 11.5px;
+            color: var(--muted);
+            line-height: 1.5
+        }
+
+        pre {
+            background: #08050e;
+            border: 0.5px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            font-size: 12px;
+            line-height: 1.7;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            margin-bottom: 1rem;
+            color: #b090d8;
+            white-space: pre
+        }
+
+        .kw {
+            color: #89ddff
+        }
+
+        .str {
+            color: #c3e88d
+        }
+
+        .cm {
+            color: #2a1845
+        }
+
+        .fn {
+            color: #82aaff
+        }
+
+        .cl {
+            color: #ffcb8b
+        }
+
+        .dec {
+            color: #c792ea
+        }
+
+        .nl {
+            color: #f78c6c
+        }
+
+        .ex-box {
+            border: 0.5px solid rgba(192, 132, 252, .22);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            background: rgba(192, 132, 252, .04);
+            margin-bottom: 1rem
+        }
+
+        .ex-title {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 7px
+        }
+
+        .ex-body {
+            font-size: 13px;
+            color: #806898;
+            line-height: 1.65;
+            margin-bottom: 7px
+        }
+
+        .steps {
+            padding-left: 1.1rem;
+            font-size: 12.5px;
+            color: #806898;
+            line-height: 1.9
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px
+        }
+
+        .btn {
+            padding: 6px 15px;
+            border-radius: 7px;
+            border: 0.5px solid var(--border2);
+            background: transparent;
+            color: var(--text);
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .15s
+        }
+
+        .btn:hover {
+            background: var(--surface2)
+        }
+
+        .btn-done {
+            border-color: rgba(192, 132, 252, .35);
+            color: var(--accent)
+        }
+
+        .btn-done:hover {
+            background: rgba(192, 132, 252, .1)
+        }
+
+        .btn-done.active {
+            background: var(--accent);
+            color: #0d0810;
+            border-color: var(--accent);
+            font-weight: 500
+        }
+
+        @media(max-width:600px) {
+            .stat-row {
+                grid-template-columns: 1fr 1fr
+            }
+
+            ;
+
+            .algo-grid {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="eyebrow">Interactive curriculum · NestJS Series</div>
+        <h1><em>Rate Limiting</em> in NestJS</h1>
+        <p class="subtitle">Throttler, Redis-backed limits, per-user quotas, sliding windows, and adaptive limiting —
+            beginner to advanced</p>
+    </header>
+    <div class="wrap">
+        <div class="stat-row">
+            <div class="stat">
+                <div class="stat-label">Completed</div>
+                <div class="stat-val" id="s-done">0 / 8</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Level</div>
+                <div class="stat-val" id="s-level">Beginner</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Progress</div>
+                <div class="stat-val" id="s-pct">0%</div>
+            </div>
+        </div>
+        <div class="progress-wrap">
+            <div class="progress-fill" id="pbar"></div>
+        </div>
+        <div class="tabs">
+            <button class="tab active" onclick="filter('all',this)">All</button>
+            <button class="tab" onclick="filter('beginner',this)">Beginner</button>
+            <button class="tab" onclick="filter('intermediate',this)">Intermediate</button>
+            <button class="tab" onclick="filter('advanced',this)">Advanced</button>
+        </div>
+        <div id="lessons"></div>
+    </div>
+    <script>
+        const L = [
+            {
+                id: 1, level: 'beginner', title: 'Rate limiting algorithms compared', sub: 'Fixed window, sliding window, token bucket, leaky bucket',
+                concept: 'Different algorithms make different tradeoffs between simplicity and accuracy. Fixed window is simplest but allows bursts at window boundaries. Sliding window is more accurate. Token bucket smooths burst traffic. Leaky bucket enforces a strict constant rate. @nestjs/throttler uses fixed window by default; Redis-backed implementations can do any of these.',
+                algos: [
+                    { name: 'Fixed window', desc: 'Count requests per fixed time slot (e.g. 100/min). Simple, but a burst at :59 and :01 of consecutive windows can double the effective rate.' },
+                    { name: 'Sliding window', desc: 'Count requests in the rolling last N seconds. More accurate than fixed window. Slightly more expensive to compute.' },
+                    { name: 'Token bucket', desc: 'Tokens refill at a fixed rate; each request consumes one. Allows controlled bursts up to bucket capacity. Most flexible.' },
+                    { name: 'Leaky bucket', desc: 'Requests queue and process at a fixed rate regardless of burst. Guarantees constant throughput. Harshest for bursty legitimate traffic.' },
+                ],
+                code: `<span class="cm">// Which algorithm to pick?</span>
+<span class="cm">// API endpoints (general)  → Fixed or sliding window</span>
+<span class="cm">// Auth / login endpoints   → Fixed window (strict, simple)</span>
+<span class="cm">// File upload / expensive  → Token bucket (allow brief bursts)</span>
+<span class="cm">// Webhook delivery         → Leaky bucket (constant rate)</span>
+<span class="cm">// @nestjs/throttler        → Fixed window (default)</span>
+<span class="cm">// rate-limiter-flexible    → All four, Redis-backed</span>`,
+                ex: {
+                    title: 'Exercise 1 — understand the boundary burst problem', body: 'Demonstrate the fixed-window boundary burst: send 5 requests at t=59s, then 5 more at t=61s. With a 10-req/min limit, all 10 should succeed — but your "real" rate was 10 req in 2 seconds.',
+                    steps: ['Write a small script that timestamps each request and measures actual throughput', 'Use a 10 req/min fixed window limit', 'Send 5 requests at second 59, then 5 at second 61 of the next window', 'Log the timestamps and compute: effective rate = 10 req / 2 sec = 5x the limit', 'Understand why sliding window or token bucket avoids this problem']
+                }
+            },
+
+            {
+                id: 2, level: 'beginner', title: '@nestjs/throttler — basic setup', sub: 'ThrottlerModule, ThrottlerGuard, @Throttle, @SkipThrottle',
+                concept: '@nestjs/throttler is NestJS\'s built-in rate limiting module. Register it globally, apply ThrottlerGuard as an APP_GUARD, and every route is automatically protected. Use @Throttle() to override limits per route, and @SkipThrottle() to exempt public or internal routes.',
+                code: `npm install @nestjs/throttler
+
+<span class="cm">// app.module.ts</span>
+<span class="kw">import</span> { <span class="cl">ThrottlerModule</span>, <span class="cl">ThrottlerGuard</span> } <span class="kw">from</span> <span class="str">'@nestjs/throttler'</span>;
+
+<span class="dec">@Module</span>({
+  imports: [
+    <span class="cl">ThrottlerModule</span>.<span class="fn">forRoot</span>([{
+      name: <span class="str">'global'</span>,
+      ttl: <span class="nl">60000</span>,   <span class="cm">// window: 1 minute (ms)</span>
+      limit: <span class="nl">100</span>,   <span class="cm">// max 100 requests per window</span>
+    }]),
+  ],
+  providers: [
+    { provide: <span class="cl">APP_GUARD</span>, useClass: <span class="cl">ThrottlerGuard</span> }, <span class="cm">// global</span>
+  ],
+})
+<span class="kw">export class</span> <span class="cl">AppModule</span> {}
+
+<span class="cm">// Override per-route</span>
+<span class="dec">@Throttle</span>({ <span class="kw">default</span>: { limit: <span class="nl">5</span>, ttl: <span class="nl">60000</span> } })
+<span class="dec">@Post</span>(<span class="str">'auth/login'</span>)
+<span class="fn">login</span>() { ... }
+
+<span class="cm">// Exempt health checks and internal routes</span>
+<span class="dec">@SkipThrottle</span>()
+<span class="dec">@Get</span>(<span class="str">'health'</span>)
+<span class="fn">health</span>() { <span class="kw">return</span> { status: <span class="str">'ok'</span> }; }`,
+                ex: {
+                    title: 'Exercise 2 — global throttle with per-route overrides', body: 'Set a global limit of 20 req/min. Override POST /auth/login to 3 req/min. Override GET /health with @SkipThrottle(). Verify each with curl in a loop.',
+                    steps: ['Install @nestjs/throttler and register ThrottlerModule.forRoot globally', 'Add { provide: APP_GUARD, useClass: ThrottlerGuard } to providers', 'Apply @Throttle({ default: { limit: 3, ttl: 60000 } }) to the login route', 'Apply @SkipThrottle() to GET /health', 'Run: for i in $(seq 1 25); do curl -s -o /dev/null -w "%{http_code}\\n" http://localhost:3000/api; done', 'Observe 200s followed by 429 Too Many Requests at request 21']
+                }
+            },
+
+            {
+                id: 3, level: 'beginner', title: 'Rate limit response headers', sub: 'X-RateLimit-Limit, X-RateLimit-Remaining, Retry-After',
+                concept: 'Well-behaved APIs tell clients their rate limit status in response headers. Clients use these to implement backoff without guessing. @nestjs/throttler automatically sets X-RateLimit-Limit, X-RateLimit-Remaining, and X-RateLimit-Reset. On 429, it sets Retry-After so clients know when to retry.',
+                code: `<span class="cm">// Headers sent automatically by ThrottlerGuard:</span>
+<span class="cm">// X-RateLimit-Limit:     100    (your configured limit)</span>
+<span class="cm">// X-RateLimit-Remaining: 87     (how many left in window)</span>
+<span class="cm">// X-RateLimit-Reset:     1714320060  (unix timestamp of window reset)</span>
+<span class="cm">// Retry-After:           45     (seconds until reset, only on 429)</span>
+
+<span class="cm">// Custom ThrottlerGuard to add extra headers</span>
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">CustomThrottlerGuard</span> <span class="kw">extends</span> <span class="cl">ThrottlerGuard</span> {
+  <span class="kw">protected async</span> <span class="fn">throwThrottlingException</span>(
+    ctx: <span class="cl">ExecutionContext</span>,
+    throttlerLimitDetail: <span class="cl">ThrottlerLimitDetail</span>,
+  ) {
+    <span class="kw">const</span> res = ctx.<span class="fn">switchToHttp</span>().<span class="fn">getResponse</span>();
+    res.<span class="fn">set</span>(<span class="str">'Retry-After'</span>, Math.<span class="fn">ceil</span>(throttlerLimitDetail.timeToExpire / <span class="nl">1000</span>));
+    <span class="kw">throw new</span> <span class="cl">HttpException</span>(
+      { message: <span class="str">'Too many requests'</span>, retryAfter: throttlerLimitDetail.timeToExpire },
+      <span class="nl">429</span>,
+    );
+  }
+}`,
+                ex: {
+                    title: 'Exercise 3 — observe and parse rate limit headers', body: 'Hit a rate-limited endpoint in a loop. After each request, read and log the X-RateLimit-Remaining header. When you get 429, read Retry-After and implement automatic backoff.',
+                    steps: ['Run the server with ThrottlerGuard globally applied', 'Write a script that hits GET /api 25 times', 'After each response, log the X-RateLimit-Remaining header value', 'When you receive 429, read the Retry-After header', 'Sleep for Retry-After seconds, then retry — confirm it succeeds', 'Extend CustomThrottlerGuard to include a JSON body with retryAfter in the 429 response']
+                }
+            },
+
+            {
+                id: 4, level: 'intermediate', title: 'Multiple throttle tiers per route', sub: 'Named throttlers, burst + sustained limits, layered defence',
+                concept: 'Production APIs often need layered limits: a loose burst limit (10 req/5s) to handle legitimate spikes, plus a strict sustained limit (100 req/min) to prevent abuse. @nestjs/throttler supports multiple named throttlers simultaneously — a request must pass ALL of them.',
+                code: `<span class="cm">// Define multiple named tiers</span>
+<span class="cl">ThrottlerModule</span>.<span class="fn">forRoot</span>([
+  {
+    name: <span class="str">'burst'</span>,
+    ttl: <span class="nl">5000</span>,    <span class="cm">// 5 second window</span>
+    limit: <span class="nl">10</span>,    <span class="cm">// max 10 requests in a burst</span>
+  },
+  {
+    name: <span class="str">'sustained'</span>,
+    ttl: <span class="nl">60000</span>,   <span class="cm">// 1 minute window</span>
+    limit: <span class="nl">100</span>,   <span class="cm">// max 100 per minute</span>
+  },
+])
+
+<span class="cm">// Override individual tiers on a route</span>
+<span class="dec">@Throttle</span>({
+  burst: { limit: <span class="nl">3</span>, ttl: <span class="nl">5000</span> },       <span class="cm">// 3 per 5s</span>
+  sustained: { limit: <span class="nl">20</span>, ttl: <span class="nl">60000</span> },  <span class="cm">// 20 per min</span>
+})
+<span class="dec">@Post</span>(<span class="str">'auth/login'</span>)
+<span class="fn">login</span>() { ... }`,
+                ex: {
+                    title: 'Exercise 4 — burst vs sustained limiting', body: 'Configure two named throttlers: burst (10 req / 5s) and sustained (60 req / min). Apply stricter burst limits to POST /auth/login. Verify a flood of rapid requests is rejected by the burst limiter before hitting the sustained limit.',
+                    steps: ['Define both burst and sustained throttlers in ThrottlerModule.forRoot', 'Apply default tiers globally via APP_GUARD', 'Override login with burst: { limit: 3, ttl: 5000 }', 'Test burst: send 5 rapid requests to /auth/login — request 4 gets 429', 'Wait 5 seconds — send 3 more — they should succeed (burst window reset)', 'Confirm sustained limit still applies: send 60 requests over a minute']
+                }
+            },
+
+            {
+                id: 5, level: 'intermediate', title: 'Redis-backed rate limiting with rate-limiter-flexible', sub: 'RateLimiterRedis, sliding window, per-user limits',
+                concept: 'The default ThrottlerGuard stores counters in memory — they reset on every server restart and don\'t share state across multiple instances. For production (multiple pods, PM2 clusters), back the rate limiter with Redis. rate-limiter-flexible provides Redis-backed sliding window, token bucket, and per-consumer limits.',
+                code: `npm install rate-limiter-flexible ioredis
+
+<span class="cm">// rate-limiter.service.ts</span>
+<span class="kw">import</span> { <span class="cl">RateLimiterRedis</span> } <span class="kw">from</span> <span class="str">'rate-limiter-flexible'</span>;
+<span class="kw">import</span> <span class="cl">Redis</span> <span class="kw">from</span> <span class="str">'ioredis'</span>;
+
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">RateLimiterService</span> {
+  <span class="kw">private</span> limiter: <span class="cl">RateLimiterRedis</span>;
+
+  <span class="kw">constructor</span>() {
+    <span class="kw">this</span>.limiter = <span class="kw">new</span> <span class="cl">RateLimiterRedis</span>({
+      storeClient: <span class="kw">new</span> <span class="cl">Redis</span>(process.env.REDIS_URL),
+      keyPrefix: <span class="str">'rl:api'</span>,
+      points: <span class="nl">100</span>,          <span class="cm">// tokens</span>
+      duration: <span class="nl">60</span>,         <span class="cm">// per 60 seconds (sliding)</span>
+      blockDuration: <span class="nl">120</span>,   <span class="cm">// block for 2 min after exhaustion</span>
+    });
+  }
+
+  <span class="kw">async</span> <span class="fn">consume</span>(key: string, points = <span class="nl">1</span>) {
+    <span class="kw">return this</span>.limiter.<span class="fn">consume</span>(key, points); <span class="cm">// throws RateLimiterRes if exceeded</span>
+  }
+}`,
+                ex: {
+                    title: 'Exercise 5 — Redis-backed per-user sliding window', body: 'Replace the in-memory ThrottlerGuard on a high-traffic route with a Redis-backed RateLimiterRedis. Key by req.user.id (authenticated) or req.ip (anonymous). Restart the server and confirm counters persist.',
+                    steps: ['Install rate-limiter-flexible and ioredis', 'Create RateLimiterService wrapping RateLimiterRedis', 'Build RateLimiterGuard that calls limiterService.consume(req.user?.id ?? req.ip)', 'Catch RateLimiterRes and throw HttpException(429) with retryAfter from the error', 'Apply to GET /products (or any read-heavy route)', 'Restart the server mid-test — confirm the count survives the restart (Redis persisted)']
+                }
+            },
+
+            {
+                id: 6, level: 'intermediate', title: 'Per-user and per-plan quotas', sub: 'Tiered limits by subscription plan, daily API quotas',
+                concept: 'SaaS APIs charge by usage tier. Free users get 100 req/day, Pro users get 10,000, Enterprise gets unlimited. Store the plan in the JWT or load from Redis. The rate limiter key is the userId; the limit is dynamically resolved from the user\'s plan.',
+                code: `<span class="cm">// quota.guard.ts — dynamic limits by plan</span>
+<span class="kw">const</span> PLAN_LIMITS: <span class="cl">Record</span>&lt;string, number&gt; = {
+  free:       <span class="nl">100</span>,
+  pro:        <span class="nl">10000</span>,
+  enterprise: <span class="cl">Infinity</span>,
+};
+
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">QuotaGuard</span> <span class="kw">implements</span> <span class="cl">CanActivate</span> {
+  <span class="kw">async</span> <span class="fn">canActivate</span>(ctx: <span class="cl">ExecutionContext</span>) {
+    <span class="kw">const</span> req = ctx.<span class="fn">switchToHttp</span>().<span class="fn">getRequest</span>();
+    <span class="kw">const</span> { user } = req;
+    <span class="kw">const</span> limit = <span class="cl">PLAN_LIMITS</span>[user.plan] ?? <span class="nl">100</span>;
+    <span class="kw">if</span> (limit === <span class="cl">Infinity</span>) <span class="kw">return true</span>;
+
+    <span class="kw">try</span> {
+      <span class="kw">await this</span>.limiter.<span class="fn">consume</span>(<span class="str">\`quota:\${user.id}\`</span>, <span class="nl">1</span>);
+      <span class="kw">return true</span>;
+    } <span class="kw">catch</span> (e) {
+      <span class="kw">throw new</span> <span class="cl">HttpException</span>(<span class="str">'Daily quota exceeded'</span>, <span class="nl">429</span>);
+    }
+  }
+}`,
+                ex: {
+                    title: 'Exercise 6 — plan-based API quotas', body: 'Build a QuotaGuard that enforces daily request quotas by plan. Free=100/day, Pro=10000/day, Enterprise=unlimited. Add GET /me/quota to show current usage.',
+                    steps: ['Add a plan field to the JWT payload (free|pro|enterprise)', 'Build QuotaGuard that resolves the limit from PLAN_LIMITS[user.plan]', 'Use RateLimiterRedis with duration: 86400 (24 hours) for daily windows', 'Apply QuotaGuard globally via APP_GUARD after JwtAuthGuard', 'Build GET /me/quota that calls limiter.get(userId) and returns { used, limit, remaining, resetsAt }', 'Test: exhaust a free account\'s quota, confirm enterprise users are never blocked']
+                }
+            },
+
+            {
+                id: 7, level: 'advanced', title: 'IP-based blocking and dynamic ban lists', sub: 'Progressive penalties, Redis sorted sets, ban middleware',
+                concept: 'For brute-force and DDoS mitigation, go beyond counting: implement progressive penalties (each violation increases the block duration) and maintain a dynamic IP ban list in Redis. A middleware checks the ban list before any route guard runs — minimal overhead on the hot path.',
+                code: `<span class="cm">// ip-ban.service.ts — progressive penalty system</span>
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">IpBanService</span> {
+  <span class="kw">async</span> <span class="fn">recordViolation</span>(ip: string) {
+    <span class="kw">const</span> violations = <span class="kw">await this</span>.redis.<span class="fn">incr</span>(<span class="str">\`violations:\${ip}\`</span>);
+    <span class="kw">await this</span>.redis.<span class="fn">expire</span>(<span class="str">\`violations:\${ip}\`</span>, <span class="nl">3600</span>);
+
+    <span class="cm">// Progressive penalty: 1→10s, 2→60s, 3→600s, 4+→86400s</span>
+    <span class="kw">const</span> penalties = [<span class="nl">10</span>, <span class="nl">60</span>, <span class="nl">600</span>, <span class="nl">86400</span>];
+    <span class="kw">const</span> duration = penalties[Math.<span class="fn">min</span>(violations - <span class="nl">1</span>, penalties.length - <span class="nl">1</span>)];
+
+    <span class="kw">await this</span>.redis.<span class="fn">setex</span>(<span class="str">\`ban:\${ip}\`</span>, duration, <span class="str">'1'</span>);
+    <span class="kw">return</span> { violations, bannedFor: duration };
+  }
+
+  <span class="kw">async</span> <span class="fn">isBanned</span>(ip: string): <span class="cl">Promise</span>&lt;boolean&gt; {
+    <span class="kw">return</span> !!(<span class="kw">await this</span>.redis.<span class="fn">exists</span>(<span class="str">\`ban:\${ip}\`</span>));
+  }
+}`,
+                ex: {
+                    title: 'Exercise 7 — progressive IP banning', body: 'Build IpBanService with progressive penalties. Integrate it into a middleware that checks ban status before every request. Trigger violations by repeatedly hitting a rate-limited endpoint.',
+                    steps: ['Create IpBanService with recordViolation() and isBanned() using Redis', 'Build IpBanMiddleware: check redis ban:${ip} — if exists, return 403 immediately', 'Register the middleware globally in AppModule before all routes', 'Extend your rate-limit guard to call ipBanService.recordViolation(ip) on 429', 'Test: exceed the rate limit 4 times — verify bans of 10s, 60s, 600s, 1 day', 'Add GET /admin/bans to list all currently banned IPs (KEYS ban:*)']
+                }
+            },
+
+            {
+                id: 8, level: 'advanced', title: 'Adaptive rate limiting and observability', sub: 'Dynamic limits, Prometheus metrics, alerting on abuse',
+                concept: 'Static limits are a starting point. Adaptive limiting adjusts thresholds based on real-time system load (CPU, DB latency, error rates). Pair this with Prometheus metrics for rate-limit hit rates and Grafana dashboards to spot abuse patterns before they become incidents.',
+                code: `npm install @willsoto/nestjs-prometheus prom-client
+
+<span class="cm">// rate-limit.metrics.ts</span>
+<span class="kw">import</span> { <span class="cl">Counter</span>, <span class="cl">Histogram</span> } <span class="kw">from</span> <span class="str">'prom-client'</span>;
+
+<span class="kw">export const</span> rateLimitHits = <span class="kw">new</span> <span class="cl">Counter</span>({
+  name: <span class="str">'rate_limit_hits_total'</span>,
+  help: <span class="str">'Number of rate limit violations'</span>,
+  labelNames: [<span class="str">'route'</span>, <span class="str">'plan'</span>],
+});
+
+<span class="kw">export const</span> requestDuration = <span class="kw">new</span> <span class="cl">Histogram</span>({
+  name: <span class="str">'http_request_duration_ms'</span>,
+  help: <span class="str">'HTTP request latency'</span>,
+  labelNames: [<span class="str">'route'</span>, <span class="str">'status'</span>],
+  buckets: [<span class="nl">10</span>, <span class="nl">50</span>, <span class="nl">100</span>, <span class="nl">200</span>, <span class="nl">500</span>, <span class="nl">1000</span>],
+});
+
+<span class="cm">// In your guard — increment on 429</span>
+rateLimitHits.<span class="fn">inc</span>({ route: req.url, plan: user?.plan ?? <span class="str">'anonymous'</span> });
+
+<span class="cm">// Adaptive: reduce limits when p95 latency > 500ms</span>
+<span class="kw">const</span> dynamicLimit = systemLoad > <span class="nl">0.8</span> ? Math.<span class="fn">floor</span>(baseLimit * <span class="nl">0.5</span>) : baseLimit;`,
+                ex: {
+                    title: 'Exercise 8 — metrics and adaptive limiting', body: 'Instrument your rate limiter with Prometheus counters. Expose /metrics. Build an adaptive guard that halves limits when system load exceeds 80%. Set up a Grafana dashboard to visualise hit rates.',
+                    steps: ['Install @willsoto/nestjs-prometheus and prom-client', 'Register a Counter for rate_limit_hits_total with route and plan labels', 'Increment the counter in your guard\'s 429 path', 'Add GET /metrics endpoint via PrometheusModule', 'Implement an adaptive multiplier: check Redis-stored CPU load and reduce limit if > 80%', 'Run Prometheus locally, point it at /metrics, build a Grafana panel for hit rates']
+                }
+            }
+        ];
+
+        const done = new Set(JSON.parse(localStorage.getItem('ratelimit-done') || '[]'));
+        function save() { try { localStorage.setItem('ratelimit-done', JSON.stringify([...done])) } catch (e) { } }
+        function updateStats() {
+            const n = done.size, t = L.length;
+            document.getElementById('s-done').textContent = n + ' / ' + t;
+            document.getElementById('s-pct').textContent = Math.round(n / t * 100) + '%';
+            document.getElementById('pbar').style.width = (n / t * 100) + '%';
+            document.getElementById('s-level').textContent = n < 3 ? 'Beginner' : n < 6 ? 'Intermediate' : 'Advanced';
+        }
+        function render(f) {
+            const c = document.getElementById('lessons'); c.innerHTML = '';
+            L.filter(l => f === 'all' || l.level === f).forEach(l => {
+                const d = done.has(l.id);
+                const algosHtml = l.algos ? `<div class="algo-grid">${l.algos.map(a => `<div class="algo-card"><div class="algo-name">${a.name}</div><div class="algo-desc">${a.desc}</div></div>`).join('')}</div>` : '';
+                const el = document.createElement('div'); el.className = 'card';
+                el.innerHTML = `<div class="card-header" onclick="toggle(${l.id})">
+      <div class="num ${d ? 'done' : ''}" id="n${l.id}">${d ? '✓' : l.id}</div>
+      <div class="title-wrap">
+        <div class="lesson-title">${l.title}<span class="badge ${l.level}">${l.level}</span></div>
+        <div class="lesson-sub">${l.sub}</div>
+      </div>
+      <div class="chevron" id="ch${l.id}">›</div>
+    </div>
+    <div class="card-body" id="b${l.id}">
+      <div class="concept-box"><div class="section-label">Concept</div><p class="concept-text">${l.concept}</p></div>
+      ${algosHtml}
+      <pre>${l.code}</pre>
+      <div class="ex-box">
+        <div class="ex-title">${l.ex.title}</div>
+        <p class="ex-body">${l.ex.body}</p>
+        ${l.ex.steps ? '<ul class="steps">' + l.ex.steps.map(s => `<li>${s}</li>`).join('') + '</ul>' : ''}
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-done ${d ? 'active' : ''}" id="mb${l.id}" onclick="mark(${l.id})">${d ? '✓ Completed' : 'Mark complete'}</button>
+      </div>
+    </div>`;
+                c.appendChild(el);
+            });
+        }
+        function toggle(id) { const b = document.getElementById('b' + id), ch = document.getElementById('ch' + id); const o = b.classList.toggle('open'); ch.style.transform = o ? 'rotate(90deg)' : ''; }
+        function mark(id) {
+            done.has(id) ? done.delete(id) : done.add(id); save(); updateStats();
+            const b = document.getElementById('mb' + id), n = document.getElementById('n' + id);
+            if (done.has(id)) { b.classList.add('active'); b.textContent = '✓ Completed'; n.classList.add('done'); n.textContent = '✓'; }
+            else { b.classList.remove('active'); b.textContent = 'Mark complete'; n.classList.remove('done'); n.textContent = id; }
+        }
+        function filter(f, el) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); el.classList.add('active'); render(f); }
+        render('all'); updateStats();
+    </script>
+</body>
+
+</html>

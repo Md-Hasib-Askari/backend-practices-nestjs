@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redis + NestJS Caching — Beginner to Advanced</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0f0f0f;
+            --surface: #1a1a1a;
+            --surface2: #222;
+            --border: rgba(255, 255, 255, 0.08);
+            --border2: rgba(255, 255, 255, 0.14);
+            --text: #e8e8e8;
+            --muted: #888;
+            --accent: #1D9E75;
+            --accent-light: #E1F5EE;
+            --accent-dark: #0F6E56;
+            --amber: #EF9F27;
+            --coral: #D85A30;
+            --blue: #378ADD;
+            --purple: #7F77DD;
+            --font-mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 15px;
+            line-height: 1.65;
+            min-height: 100vh;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
+
+        header {
+            padding: 3rem 2rem 2rem;
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        .eyebrow {
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+        }
+
+        h1 {
+            font-size: clamp(26px, 4vw, 38px);
+            font-weight: 300;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 span {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .wrap {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem;
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .stat {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 4px;
+        }
+
+        .stat-val {
+            font-size: 22px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .progress-wrap {
+            background: var(--surface);
+            border-radius: 99px;
+            height: 4px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: var(--accent);
+            height: 4px;
+            border-radius: 99px;
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab {
+            padding: 5px 14px;
+            border-radius: 99px;
+            border: 0.5px solid var(--border2);
+            background: transparent;
+            cursor: pointer;
+            font-size: 12.5px;
+            color: var(--muted);
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .tab:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        .tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .lesson-card {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .lesson-card:hover {
+            border-color: var(--border2);
+        }
+
+        .lesson-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 1.1rem 1.25rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .num {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--surface2);
+            border: 0.5px solid var(--border2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+            flex-shrink: 0;
+            margin-top: 1px;
+            transition: all 0.2s;
+        }
+
+        .num.done {
+            background: rgba(29, 158, 117, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .lesson-title-wrap {
+            flex: 1;
+        }
+
+        .lesson-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .lesson-sub {
+            font-size: 12.5px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-weight: 400;
+            letter-spacing: 0.04em;
+        }
+
+        .badge.beginner {
+            background: rgba(55, 138, 221, 0.15);
+            color: #7bb8ef;
+            border: 0.5px solid rgba(55, 138, 221, 0.25);
+        }
+
+        .badge.intermediate {
+            background: rgba(239, 159, 39, 0.12);
+            color: #f5be6a;
+            border: 0.5px solid rgba(239, 159, 39, 0.25);
+        }
+
+        .badge.advanced {
+            background: rgba(216, 90, 48, 0.12);
+            color: #e88b68;
+            border: 0.5px solid rgba(216, 90, 48, 0.25);
+        }
+
+        .chevron {
+            font-size: 20px;
+            color: var(--muted);
+            transition: transform 0.2s;
+            flex-shrink: 0;
+            line-height: 1;
+            margin-top: 4px;
+        }
+
+        .chevron.open {
+            transform: rotate(90deg);
+        }
+
+        .lesson-body {
+            display: none;
+            padding: 0 1.25rem 1.25rem;
+            border-top: 0.5px solid var(--border);
+            margin-top: 0;
+        }
+
+        .lesson-body.open {
+            display: block;
+        }
+
+        .concept-box {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            margin: 1rem 0;
+        }
+
+        .section-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .concept-text {
+            font-size: 13.5px;
+            color: #ccc;
+            line-height: 1.7;
+        }
+
+        pre {
+            background: #0a0a0a;
+            border: 0.5px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            font-size: 12.5px;
+            line-height: 1.65;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            margin-bottom: 1rem;
+            color: #ccc;
+            white-space: pre;
+        }
+
+        .kw {
+            color: #c792ea;
+        }
+
+        .str {
+            color: #9FE1CB;
+        }
+
+        .cm {
+            color: #546e7a;
+        }
+
+        .fn {
+            color: #82aaff;
+        }
+
+        .cl {
+            color: #F0997B;
+        }
+
+        .num-lit {
+            color: #f78c6c;
+        }
+
+        .exercise-box {
+            border: 0.5px solid rgba(29, 158, 117, 0.3);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            background: rgba(29, 158, 117, 0.05);
+            margin-bottom: 1rem;
+        }
+
+        .exercise-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+        }
+
+        .exercise-body {
+            font-size: 13px;
+            color: #aaa;
+            line-height: 1.65;
+            margin-bottom: 8px;
+        }
+
+        .steps {
+            padding-left: 1.1rem;
+            font-size: 12.5px;
+            color: #aaa;
+            line-height: 1.9;
+        }
+
+        .steps li {
+            margin-bottom: 2px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 7px 16px;
+            border-radius: 8px;
+            border: 0.5px solid var(--border2);
+            background: transparent;
+            color: var(--text);
+            font-size: 12.5px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .btn:hover {
+            background: var(--surface2);
+        }
+
+        .btn-mark {
+            border-color: rgba(29, 158, 117, 0.4);
+            color: var(--accent);
+        }
+
+        .btn-mark:hover {
+            background: rgba(29, 158, 117, 0.1);
+        }
+
+        .btn-mark.done {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        @media (max-width: 600px) {
+            .stat-row {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            header {
+                padding: 2rem 1.25rem 1.25rem;
+            }
+
+            .wrap {
+                padding: 0 1.25rem 3rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="eyebrow">Interactive curriculum</div>
+        <h1>Redis + <span>NestJS</span> Caching</h1>
+        <p class="subtitle">Beginner to advanced — 8 guided lessons with exercises</p>
+    </header>
+
+    <div class="wrap">
+
+        <div class="stat-row">
+            <div class="stat">
+                <div class="stat-label">Completed</div>
+                <div class="stat-val" id="s-done">0 / 8</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Level</div>
+                <div class="stat-val" id="s-level">Beginner</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Progress</div>
+                <div class="stat-val" id="s-pct">0%</div>
+            </div>
+        </div>
+
+        <div class="progress-wrap">
+            <div class="progress-fill" id="pbar"></div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="filterModule('all', this)">All lessons</button>
+            <button class="tab" onclick="filterModule('beginner', this)">Beginner</button>
+            <button class="tab" onclick="filterModule('intermediate', this)">Intermediate</button>
+            <button class="tab" onclick="filterModule('advanced', this)">Advanced</button>
+        </div>
+
+        <div id="lessons"></div>
+    </div>
+
+    <script>
+        const LESSONS = [
+            {
+                id: 1, level: 'beginner',
+                title: 'What is Redis and why cache?',
+                sub: 'Core concepts, use cases, installation',
+                concept: 'Redis is an in-memory key-value store. Instead of hitting your database on every request, you store frequently-read data in Redis — reads are ~100x faster. NestJS has first-class cache support via @nestjs/cache-manager.',
+                code: `<span class="cm"># Install Redis locally (or use Docker)</span>
+docker run -d -p 6379:6379 redis:alpine
+
+<span class="cm"># Install NestJS cache packages</span>
+npm install @nestjs/cache-manager cache-manager
+npm install -D @types/cache-manager`,
+                exercise: {
+                    title: 'Exercise 1 — confirm Redis is running',
+                    body: 'Run Redis via Docker, then connect with the Redis CLI and test it:',
+                    steps: ['docker run -d -p 6379:6379 redis:alpine', 'docker exec -it &lt;container_id&gt; redis-cli', 'Type: SET hello world', 'Type: GET hello — you should see "world"']
+                }
+            },
+            {
+                id: 2, level: 'beginner',
+                title: 'Setting up CacheModule in NestJS',
+                sub: 'AppModule setup, in-memory vs Redis store',
+                concept: 'CacheModule is the entry point. By default it uses an in-memory store (good for local dev). For production you swap it for a Redis store.',
+                code: `<span class="cm">// app.module.ts</span>
+<span class="kw">import</span> { <span class="cl">CacheModule</span> } <span class="kw">from</span> <span class="str">'@nestjs/cache-manager'</span>;
+
+<span class="fn">@Module</span>({
+  imports: [
+    <span class="cl">CacheModule</span>.<span class="fn">register</span>({
+      isGlobal: <span class="kw">true</span>,   <span class="cm">// available everywhere</span>
+      ttl: <span class="num-lit">60</span>,            <span class="cm">// seconds</span>
+      max: <span class="num-lit">100</span>,           <span class="cm">// max items in cache</span>
+    }),
+  ],
+})
+<span class="kw">export class</span> <span class="cl">AppModule</span> {}`,
+                exercise: {
+                    title: 'Exercise 2 — register CacheModule globally',
+                    body: 'Add CacheModule.register({ isGlobal: true, ttl: 30 }) to your AppModule. Verify NestJS starts without errors.',
+                    steps: ['Create a fresh NestJS app: nest new redis-demo', 'Install cache packages (from lesson 1)', 'Add CacheModule to AppModule imports', 'Run: npm run start:dev']
+                }
+            },
+            {
+                id: 3, level: 'beginner',
+                title: 'Injecting and using CacheManager',
+                sub: 'get, set, del — manual cache operations',
+                concept: 'Inject CACHE_MANAGER into any service to manually read and write cached values. This gives you full control over the cache-aside pattern.',
+                code: `<span class="cm">// products.service.ts</span>
+<span class="kw">import</span> { <span class="cl">Inject</span>, <span class="cl">Injectable</span> } <span class="kw">from</span> <span class="str">'@nestjs/common'</span>;
+<span class="kw">import</span> { <span class="cl">CACHE_MANAGER</span> } <span class="kw">from</span> <span class="str">'@nestjs/cache-manager'</span>;
+<span class="kw">import</span> { <span class="cl">Cache</span> } <span class="kw">from</span> <span class="str">'cache-manager'</span>;
+
+<span class="fn">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">ProductsService</span> {
+  <span class="kw">constructor</span>(<span class="fn">@Inject</span>(<span class="cl">CACHE_MANAGER</span>) <span class="kw">private</span> cache: <span class="cl">Cache</span>) {}
+
+  <span class="kw">async</span> <span class="fn">getProduct</span>(id: number) {
+    <span class="kw">const</span> key = <span class="str">\`product:\${id}\`</span>;
+    <span class="kw">const</span> cached = <span class="kw">await</span> <span class="kw">this</span>.cache.<span class="fn">get</span>(key);
+    <span class="kw">if</span> (cached) <span class="kw">return</span> cached;         <span class="cm">// cache HIT</span>
+
+    <span class="kw">const</span> product = <span class="kw">await</span> db.<span class="fn">find</span>(id); <span class="cm">// cache MISS</span>
+    <span class="kw">await</span> <span class="kw">this</span>.cache.<span class="fn">set</span>(key, product, <span class="num-lit">60</span>);
+    <span class="kw">return</span> product;
+  }
+
+  <span class="kw">async</span> <span class="fn">invalidate</span>(id: number) {
+    <span class="kw">await</span> <span class="kw">this</span>.cache.<span class="fn">del</span>(<span class="str">\`product:\${id}\`</span>);
+  }
+}`,
+                exercise: {
+                    title: 'Exercise 3 — cache-aside pattern',
+                    body: 'Build a /products/:id endpoint that follows cache-aside: check cache → on miss, fetch from an array (fake DB) → store in cache → return. Log "CACHE HIT" or "CACHE MISS" to the console.',
+                    steps: ['Create ProductsModule, ProductsController, ProductsService', 'Inject CACHE_MANAGER into the service', 'Implement getProduct with cache-aside logic', 'Hit the endpoint twice and verify "CACHE HIT" on the second call']
+                }
+            },
+            {
+                id: 4, level: 'beginner',
+                title: '@CacheKey and @CacheTTL decorators',
+                sub: 'Route-level caching with interceptors',
+                concept: 'The CacheInterceptor automatically caches GET route responses. Use @CacheKey and @CacheTTL to control what gets cached and for how long — zero boilerplate.',
+                code: `<span class="cm">// products.controller.ts</span>
+<span class="kw">import</span> { <span class="cl">CacheInterceptor</span>, <span class="cl">CacheKey</span>, <span class="cl">CacheTTL</span> } <span class="kw">from</span> <span class="str">'@nestjs/cache-manager'</span>;
+
+<span class="fn">@Controller</span>(<span class="str">'products'</span>)
+<span class="fn">@UseInterceptors</span>(<span class="cl">CacheInterceptor</span>)
+<span class="kw">export class</span> <span class="cl">ProductsController</span> {
+
+  <span class="fn">@Get</span>()
+  <span class="fn">@CacheTTL</span>(<span class="num-lit">120</span>)
+  <span class="fn">findAll</span>() { <span class="kw">return</span> <span class="kw">this</span>.service.<span class="fn">findAll</span>(); }
+
+  <span class="fn">@Get</span>(<span class="str">':id'</span>)
+  <span class="fn">@CacheKey</span>(<span class="str">'product-detail'</span>)
+  <span class="fn">@CacheTTL</span>(<span class="num-lit">300</span>)
+  <span class="fn">findOne</span>(<span class="fn">@Param</span>(<span class="str">'id'</span>) id: string) { <span class="cm">/* ... */</span> }
+}`,
+                exercise: {
+                    title: 'Exercise 4 — intercept and compare',
+                    body: 'Apply CacheInterceptor to your controller. Add a timestamp to your response. Call the endpoint twice and confirm the timestamp freezes after the first call.',
+                    steps: ['Add @UseInterceptors(CacheInterceptor) to your controller', 'Include new Date().toISOString() in the response', 'Set @CacheTTL(30) on the route', 'Call with curl twice and observe the timestamp']
+                }
+            },
+            {
+                id: 5, level: 'intermediate',
+                title: 'Connecting Redis with cache-manager-redis-yet',
+                sub: 'Production Redis store, config, connection options',
+                concept: 'Swap the in-memory store for a real Redis instance. Use cache-manager-redis-yet (the modern adapter). Configure host, port, auth, and key prefix via CacheModule.registerAsync for env-based config.',
+                code: `npm install cache-manager-redis-yet ioredis
+
+<span class="cm">// app.module.ts</span>
+<span class="kw">import</span> { redisStore } <span class="kw">from</span> <span class="str">'cache-manager-redis-yet'</span>;
+
+<span class="cl">CacheModule</span>.<span class="fn">registerAsync</span>({
+  isGlobal: <span class="kw">true</span>,
+  imports: [<span class="cl">ConfigModule</span>],
+  inject: [<span class="cl">ConfigService</span>],
+  useFactory: <span class="kw">async</span> (config: <span class="cl">ConfigService</span>) => ({
+    store: <span class="kw">await</span> <span class="fn">redisStore</span>({
+      socket: {
+        host: config.<span class="fn">get</span>(<span class="str">'REDIS_HOST'</span>),
+        port: config.<span class="fn">get</span>(<span class="str">'REDIS_PORT'</span>),
+      },
+      password: config.<span class="fn">get</span>(<span class="str">'REDIS_PASSWORD'</span>),
+      ttl: <span class="num-lit">60</span> * <span class="num-lit">1000</span>,
+    }),
+  }),
+}),`,
+                exercise: {
+                    title: 'Exercise 5 — switch to Redis store',
+                    body: 'Replace the in-memory CacheModule with the Redis store. Use a .env file for connection config. Verify by using redis-cli KEYS * after hitting your cached route.',
+                    steps: ['Install cache-manager-redis-yet and @nestjs/config', 'Create a .env with REDIS_HOST=localhost REDIS_PORT=6379', 'Convert CacheModule to registerAsync with ConfigService', 'Call your endpoint then run: redis-cli KEYS *']
+                }
+            },
+            {
+                id: 6, level: 'intermediate',
+                title: 'Cache invalidation strategies',
+                sub: 'TTL, manual del, event-driven invalidation',
+                concept: 'Cache invalidation is the hard part. Three main strategies: (1) TTL expiry — simplest, stale for up to TTL. (2) Manual del on mutation — immediate but requires discipline. (3) Event-driven — invalidate via events when data changes, decoupled and scalable.',
+                code: `<span class="cm">// Strategy 2: manual invalidation on mutation</span>
+<span class="kw">async</span> <span class="fn">updateProduct</span>(id: number, dto: <span class="cl">UpdateDto</span>) {
+  <span class="kw">const</span> result = <span class="kw">await</span> <span class="kw">this</span>.db.<span class="fn">update</span>(id, dto);
+  <span class="kw">await</span> <span class="kw">this</span>.cache.<span class="fn">del</span>(<span class="str">\`product:\${id}\`</span>);
+  <span class="kw">await</span> <span class="kw">this</span>.cache.<span class="fn">del</span>(<span class="str">'products:all'</span>);
+  <span class="kw">return</span> result;
+}
+
+<span class="cm">// Strategy 3: event-driven invalidation</span>
+<span class="kw">async</span> <span class="fn">onProductUpdated</span>(event: <span class="cl">ProductUpdatedEvent</span>) {
+  <span class="kw">const</span> keys = <span class="kw">await</span> <span class="kw">this</span>.redis.<span class="fn">keys</span>(<span class="str">\`product:*\`</span>);
+  <span class="kw">await</span> <span class="cl">Promise</span>.<span class="fn">all</span>(keys.<span class="fn">map</span>(k => <span class="kw">this</span>.cache.<span class="fn">del</span>(k)));
+}`,
+                exercise: {
+                    title: 'Exercise 6 — invalidate on update',
+                    body: 'Add a PUT /products/:id endpoint. When a product is updated, delete both the product cache key and the list cache key. Verify: GET (cached) → PUT → GET (fresh from DB).',
+                    steps: ['Add updateProduct to your service', 'Call cache.del on the specific key AND the list key', 'Test the flow with curl: GET → PUT → GET', 'Notice the third GET re-populates the cache']
+                }
+            },
+            {
+                id: 7, level: 'advanced',
+                title: 'Cache stampede prevention',
+                sub: 'Mutex locks, stale-while-revalidate, probabilistic expiry',
+                concept: 'Cache stampede (thundering herd) happens when a hot cache key expires and many requests simultaneously miss — all hitting the DB at once. Solutions: mutex lock (one request rebuilds, others wait), stale-while-revalidate (serve stale, refresh async), or probabilistic early expiry.',
+                code: `npm install redlock
+
+<span class="kw">import</span> <span class="cl">Redlock</span> <span class="kw">from</span> <span class="str">'redlock'</span>;
+
+<span class="kw">async</span> <span class="fn">getWithLock</span>(key: string) {
+  <span class="kw">const</span> cached = <span class="kw">await</span> <span class="kw">this</span>.cache.<span class="fn">get</span>(key);
+  <span class="kw">if</span> (cached) <span class="kw">return</span> cached;
+
+  <span class="kw">const</span> lock = <span class="kw">await</span> <span class="kw">this</span>.redlock.<span class="fn">acquire</span>([<span class="str">\`lock:\${key}\`</span>], <span class="num-lit">5000</span>);
+  <span class="kw">try</span> {
+    <span class="cm">// double-check after acquiring lock</span>
+    <span class="kw">const</span> check = <span class="kw">await</span> <span class="kw">this</span>.cache.<span class="fn">get</span>(key);
+    <span class="kw">if</span> (check) <span class="kw">return</span> check;
+
+    <span class="kw">const</span> fresh = <span class="kw">await</span> <span class="kw">this</span>.db.<span class="fn">query</span>(key);
+    <span class="kw">await</span> <span class="kw">this</span>.cache.<span class="fn">set</span>(key, fresh, <span class="num-lit">60</span>);
+    <span class="kw">return</span> fresh;
+  } <span class="kw">finally</span> {
+    <span class="kw">await</span> lock.<span class="fn">release</span>();
+  }
+}`,
+                exercise: {
+                    title: 'Exercise 7 — simulate and prevent a stampede',
+                    body: 'Simulate a stampede by sending 20 concurrent requests to a cold cache endpoint. Observe DB hits. Then implement the mutex lock pattern with Redlock and repeat — observe only 1 DB hit.',
+                    steps: ['Use Promise.all with 20 fetch() calls to hit a cold cache', 'Log every DB hit in your service', 'Install redlock and integrate the lock pattern', 'Re-run the 20 concurrent requests — expect exactly 1 DB hit']
+                }
+            },
+            {
+                id: 8, level: 'advanced',
+                title: 'Redis data structures for advanced caching',
+                sub: 'Hashes, Sorted Sets, Pub/Sub invalidation',
+                concept: 'Redis is more than key-value. Hashes store structured objects field-by-field (update one field without re-caching the whole object). Sorted Sets power leaderboards and time-range queries. Pub/Sub lets services broadcast cache invalidation events across instances.',
+                code: `<span class="cm">// Inject raw ioredis for advanced ops</span>
+<span class="kw">import</span> <span class="cl">Redis</span> <span class="kw">from</span> <span class="str">'ioredis'</span>;
+
+<span class="cm">// Hash: update only the price field</span>
+<span class="kw">await</span> redis.<span class="fn">hset</span>(<span class="str">\`product:\${id}\`</span>, <span class="str">'price'</span>, newPrice);
+<span class="kw">await</span> redis.<span class="fn">hgetall</span>(<span class="str">\`product:\${id}\`</span>);
+
+<span class="cm">// Sorted Set: leaderboard</span>
+<span class="kw">await</span> redis.<span class="fn">zadd</span>(<span class="str">'leaderboard'</span>, score, userId);
+<span class="kw">await</span> redis.<span class="fn">zrevrange</span>(<span class="str">'leaderboard'</span>, <span class="num-lit">0</span>, <span class="num-lit">9</span>, <span class="str">'WITHSCORES'</span>);
+
+<span class="cm">// Pub/Sub: cross-service cache invalidation</span>
+publisher.<span class="fn">publish</span>(<span class="str">'cache:invalidate'</span>, <span class="str">\`product:\${id}\`</span>);
+subscriber.<span class="fn">subscribe</span>(<span class="str">'cache:invalidate'</span>, (key) => {
+  cacheManager.<span class="fn">del</span>(key);
+});`,
+                exercise: {
+                    title: 'Exercise 8 — build a leaderboard with Sorted Sets',
+                    body: 'Build a /leaderboard endpoint backed entirely by a Redis Sorted Set. POST /score to add a user score, GET /leaderboard to retrieve top 10. No database needed.',
+                    steps: ['Inject ioredis directly via a custom provider', 'POST /score { userId, score } → redis.zadd("leaderboard", score, userId)', 'GET /leaderboard → redis.zrevrange("leaderboard", 0, 9, "WITHSCORES")', 'Format the result into { rank, userId, score } objects']
+                }
+            }
+        ];
+
+        const done = new Set(JSON.parse(localStorage.getItem('redis-curriculum-done') || '[]'));
+
+        function save() {
+            try { localStorage.setItem('redis-curriculum-done', JSON.stringify([...done])); } catch (e) { }
+        }
+
+        function updateStats() {
+            const n = done.size, total = LESSONS.length;
+            document.getElementById('s-done').textContent = n + ' / ' + total;
+            document.getElementById('s-pct').textContent = Math.round(n / total * 100) + '%';
+            document.getElementById('pbar').style.width = (n / total * 100) + '%';
+            document.getElementById('s-level').textContent = n < 3 ? 'Beginner' : n < 6 ? 'Intermediate' : 'Advanced';
+        }
+
+        function renderLessons(filter) {
+            const container = document.getElementById('lessons');
+            container.innerHTML = '';
+            LESSONS.filter(l => filter === 'all' || l.level === filter).forEach(l => {
+                const isDone = done.has(l.id);
+                const div = document.createElement('div');
+                div.className = 'lesson-card';
+                const stepsHtml = l.exercise.steps
+                    ? '<ul class="steps">' + l.exercise.steps.map(s => `<li>${s}</li>`).join('') + '</ul>'
+                    : '';
+                div.innerHTML = `
+      <div class="lesson-header" onclick="toggle(${l.id})">
+        <div class="num ${isDone ? 'done' : ''}" id="num-${l.id}">${isDone ? '✓' : l.id}</div>
+        <div class="lesson-title-wrap">
+          <div class="lesson-title">${l.title}<span class="badge ${l.level}">${l.level}</span></div>
+          <div class="lesson-sub">${l.sub}</div>
+        </div>
+        <div class="chevron" id="ch-${l.id}">›</div>
+      </div>
+      <div class="lesson-body" id="body-${l.id}">
+        <div class="concept-box">
+          <div class="section-label">Concept</div>
+          <p class="concept-text">${l.concept}</p>
+        </div>
+        <pre>${l.code}</pre>
+        <div class="exercise-box">
+          <div class="exercise-title">${l.exercise.title}</div>
+          <p class="exercise-body">${l.exercise.body}</p>
+          ${stepsHtml}
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-mark ${isDone ? 'done' : ''}" id="mbtn-${l.id}" onclick="markDone(${l.id})">
+            ${isDone ? '✓ Completed' : 'Mark complete'}
+          </button>
+        </div>
+      </div>`;
+                container.appendChild(div);
+            });
+        }
+
+        function toggle(id) {
+            const body = document.getElementById('body-' + id);
+            const ch = document.getElementById('ch-' + id);
+            const open = body.classList.toggle('open');
+            ch.classList.toggle('open', open);
+            ch.textContent = open ? '›' : '›';
+            if (open) ch.style.transform = 'rotate(90deg)';
+            else ch.style.transform = '';
+        }
+
+        function markDone(id) {
+            done.has(id) ? done.delete(id) : done.add(id);
+            save(); updateStats();
+            const btn = document.getElementById('mbtn-' + id);
+            const num = document.getElementById('num-' + id);
+            if (done.has(id)) {
+                btn.classList.add('done'); btn.textContent = '✓ Completed';
+                num.classList.add('done'); num.textContent = '✓';
+            } else {
+                btn.classList.remove('done'); btn.textContent = 'Mark complete';
+                num.classList.remove('done'); num.textContent = id;
+            }
+        }
+
+        function filterModule(level, el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            renderLessons(level);
+        }
+
+        renderLessons('all');
+        updateStats();
+    </script>
+</body>
+
+</html>

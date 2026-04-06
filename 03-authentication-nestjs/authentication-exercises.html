@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Authentication in NestJS — Beginner to Advanced</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d14;--surface:#13131f;--surface2:#1a1a2a;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#ddddf0;--muted:#6060a0;--accent:#7C8CF8;--accent-dim:rgba(124,140,248,0.12);
+  --green:#4ec994;--amber:#d4a843;--coral:#c96b8a;--font-mono:'Fira Code','Cascadia Code',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,sans-serif;font-size:15px;line-height:1.65;min-height:100vh}
+header{padding:3rem 2rem 1.5rem;max-width:900px;margin:0 auto}
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:.6rem}
+h1{font-size:clamp(24px,4vw,36px);font-weight:300;color:#fff;line-height:1.2;margin-bottom:.4rem}
+h1 em{color:var(--accent);font-style:normal;font-weight:500}
+.subtitle{font-size:13px;color:var(--muted)}
+.wrap{max-width:900px;margin:0 auto;padding:0 2rem 4rem}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.75rem}
+.stat{background:var(--surface);border:0.5px solid var(--border);border-radius:10px;padding:.85rem 1rem}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.stat-val{font-size:21px;font-weight:500;color:#fff}
+.progress-wrap{background:var(--surface);border-radius:99px;height:3px;margin-bottom:1.75rem;overflow:hidden}
+.progress-fill{background:var(--accent);height:3px;border-radius:99px;transition:width .4s ease;width:0%}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem}
+.tab{padding:5px 14px;border-radius:99px;border:0.5px solid var(--border2);background:transparent;cursor:pointer;font-size:12px;color:var(--muted);font-family:inherit;transition:all .15s}
+.tab:hover{background:var(--surface2);color:var(--text)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#0d0d14;font-weight:500}
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.card:hover{border-color:var(--border2)}
+.card-header{display:flex;align-items:flex-start;gap:14px;padding:1.1rem 1.25rem;cursor:pointer;user-select:none}
+.num{width:30px;height:30px;border-radius:50%;background:var(--surface2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--muted);flex-shrink:0;margin-top:1px;transition:all .2s}
+.num.done{background:rgba(124,140,248,.15);border-color:var(--accent);color:var(--accent)}
+.title-wrap{flex:1}
+.lesson-title{font-size:15px;font-weight:500;color:#fff;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lesson-sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+.badge{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:400;letter-spacing:.04em}
+.badge.beginner{background:rgba(78,201,148,.12);color:#6edaa8;border:0.5px solid rgba(78,201,148,.25)}
+.badge.intermediate{background:rgba(212,168,67,.12);color:#e0bc6a;border:0.5px solid rgba(212,168,67,.25)}
+.badge.advanced{background:rgba(201,107,138,.12);color:#e08aaa;border:0.5px solid rgba(201,107,138,.25)}
+.chevron{font-size:16px;color:var(--muted);transition:transform .2s;flex-shrink:0;margin-top:5px}
+.card-body{display:none;padding:0 1.25rem 1.25rem;border-top:0.5px solid var(--border)}
+.card-body.open{display:block}
+.concept-box{background:var(--surface2);border-radius:8px;padding:.9rem 1.1rem;margin:1rem 0}
+.section-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:500;margin-bottom:7px}
+.concept-text{font-size:13.5px;color:#b0b0d0;line-height:1.7}
+pre{background:#080810;border:0.5px solid var(--border);border-radius:8px;padding:1rem 1.1rem;font-size:12px;line-height:1.7;overflow-x:auto;font-family:var(--font-mono);margin-bottom:1rem;color:#b0b0d0;white-space:pre}
+.kw{color:#89ddff}.str{color:#c3e88d}.cm{color:#3a3a70}.fn{color:#82aaff}.cl{color:#ffcb8b}.dec{color:#c792ea}.nl{color:#f78c6c}
+.ex-box{border:0.5px solid rgba(124,140,248,.25);border-radius:8px;padding:1rem 1.1rem;background:rgba(124,140,248,.05);margin-bottom:1rem}
+.ex-title{font-size:10px;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.ex-body{font-size:13px;color:#9090b8;line-height:1.65;margin-bottom:7px}
+.steps{padding-left:1.1rem;font-size:12.5px;color:#9090b8;line-height:1.9}
+.btn-row{display:flex;gap:8px;margin-top:10px}
+.btn{padding:6px 15px;border-radius:7px;border:0.5px solid var(--border2);background:transparent;color:var(--text);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn:hover{background:var(--surface2)}
+.btn-done{border-color:rgba(124,140,248,.35);color:var(--accent)}
+.btn-done:hover{background:rgba(124,140,248,.1)}
+.btn-done.active{background:var(--accent);color:#0d0d14;border-color:var(--accent);font-weight:500}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Interactive curriculum · NestJS Series</div>
+  <h1><em>Authentication</em> in NestJS</h1>
+  <p class="subtitle">Passport, JWT, refresh tokens, OAuth, guards — beginner to advanced</p>
+</header>
+<div class="wrap">
+  <div class="stat-row">
+    <div class="stat"><div class="stat-label">Completed</div><div class="stat-val" id="s-done">0 / 8</div></div>
+    <div class="stat"><div class="stat-label">Level</div><div class="stat-val" id="s-level">Beginner</div></div>
+    <div class="stat"><div class="stat-label">Progress</div><div class="stat-val" id="s-pct">0%</div></div>
+  </div>
+  <div class="progress-wrap"><div class="progress-fill" id="pbar"></div></div>
+  <div class="tabs">
+    <button class="tab active" onclick="filter('all',this)">All</button>
+    <button class="tab" onclick="filter('beginner',this)">Beginner</button>
+    <button class="tab" onclick="filter('intermediate',this)">Intermediate</button>
+    <button class="tab" onclick="filter('advanced',this)">Advanced</button>
+  </div>
+  <div id="lessons"></div>
+</div>
+<script>
+const L=[
+{id:1,level:'beginner',title:'Password hashing with bcrypt',sub:'argon2, bcrypt, salt rounds, never store plaintext',
+concept:'Never store plaintext passwords. Hash them with bcrypt or argon2 before persisting. On login, compare the submitted password against the stored hash using bcrypt.compare(). Salt rounds of 10–12 is the production sweet spot.',
+code:`npm install bcrypt && npm install -D @types/bcrypt
+
+<span class="cm">// auth.service.ts</span>
+<span class="kw">import</span> * <span class="kw">as</span> bcrypt <span class="kw">from</span> <span class="str">'bcrypt'</span>;
+
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">AuthService</span> {
+  <span class="kw">async</span> <span class="fn">hashPassword</span>(plain: string): <span class="cl">Promise</span>&lt;string&gt; {
+    <span class="kw">return</span> bcrypt.<span class="fn">hash</span>(plain, <span class="nl">12</span>);
+  }
+
+  <span class="kw">async</span> <span class="fn">verifyPassword</span>(plain: string, hash: string) {
+    <span class="kw">return</span> bcrypt.<span class="fn">compare</span>(plain, hash);
+  }
+
+  <span class="kw">async</span> <span class="fn">validateUser</span>(email: string, password: string) {
+    <span class="kw">const</span> user = <span class="kw">await this</span>.usersService.<span class="fn">findByEmail</span>(email);
+    <span class="kw">if</span> (!user) <span class="kw">return null</span>;
+    <span class="kw">const</span> valid = <span class="kw">await this</span>.<span class="fn">verifyPassword</span>(password, user.password);
+    <span class="kw">return</span> valid ? user : <span class="kw">null</span>;
+  }
+}`,
+ex:{title:'Exercise 1 — register endpoint with hashed password',body:'Build POST /auth/register that accepts { name, email, password }, hashes the password, saves the user, and returns the user without the password field.',
+steps:['Install bcrypt and @types/bcrypt','Create AuthModule, AuthService, AuthController','Hash the password in AuthService.register() before calling UsersService.create()','Exclude the password from the response using a class-transformer @Exclude() decorator','Test: register a user, then check the DB — confirm password is hashed']}},
+
+{id:2,level:'beginner',title:'Local strategy with Passport',sub:'PassportStrategy, LocalStrategy, validate()',
+concept:'Passport.js is the industry-standard authentication middleware for Node. @nestjs/passport wraps it elegantly. The LocalStrategy handles username+password login — validate() is called automatically.',
+code:`npm install @nestjs/passport passport passport-local
+npm install -D @types/passport-local
+
+<span class="cm">// local.strategy.ts</span>
+<span class="kw">import</span> { <span class="cl">Strategy</span> } <span class="kw">from</span> <span class="str">'passport-local'</span>;
+<span class="kw">import</span> { <span class="cl">PassportStrategy</span> } <span class="kw">from</span> <span class="str">'@nestjs/passport'</span>;
+
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">LocalStrategy</span> <span class="kw">extends</span> <span class="cl">PassportStrategy</span>(<span class="cl">Strategy</span>) {
+  <span class="kw">constructor</span>(<span class="kw">private</span> authService: <span class="cl">AuthService</span>) {
+    <span class="kw">super</span>({ usernameField: <span class="str">'email'</span> });
+  }
+
+  <span class="kw">async</span> <span class="fn">validate</span>(email: string, password: string) {
+    <span class="kw">const</span> user = <span class="kw">await this</span>.authService.<span class="fn">validateUser</span>(email, password);
+    <span class="kw">if</span> (!user) <span class="kw">throw new</span> <span class="cl">UnauthorizedException</span>();
+    <span class="kw">return</span> user; <span class="cm">// attached to req.user</span>
+  }
+}`,
+ex:{title:'Exercise 2 — POST /auth/login with LocalGuard',body:'Create a POST /auth/login endpoint guarded by AuthGuard("local"). Return the authenticated user from the guard (req.user) for now — we will add JWT in the next lesson.',
+steps:['Create local.strategy.ts extending PassportStrategy(Strategy)','Register LocalStrategy as a provider in AuthModule','Create LocalAuthGuard extending AuthGuard("local")','Add POST /auth/login to AuthController with @UseGuards(LocalAuthGuard)','Test: POST /auth/login with valid and invalid credentials']}},
+
+{id:3,level:'beginner',title:'JWT access tokens',sub:'JwtModule, sign, JwtStrategy, @UseGuards(JwtAuthGuard)',
+concept:'After successful login, issue a signed JWT access token. The JwtStrategy validates Bearer tokens on protected routes. JwtModule.registerAsync lets you load the secret from environment variables.',
+code:`npm install @nestjs/jwt passport-jwt && npm install -D @types/passport-jwt
+
+<span class="cm">// auth.service.ts — issue token</span>
+<span class="fn">login</span>(user: <span class="cl">User</span>) {
+  <span class="kw">const</span> payload = { sub: user._id, email: user.email, role: user.role };
+  <span class="kw">return</span> { access_token: <span class="kw">this</span>.jwtService.<span class="fn">sign</span>(payload) };
+}
+
+<span class="cm">// jwt.strategy.ts</span>
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">JwtStrategy</span> <span class="kw">extends</span> <span class="cl">PassportStrategy</span>(<span class="cl">Strategy</span>) {
+  <span class="kw">constructor</span>(cfg: <span class="cl">ConfigService</span>) {
+    <span class="kw">super</span>({
+      jwtFromRequest: <span class="cl">ExtractJwt</span>.<span class="fn">fromAuthHeaderAsBearerToken</span>(),
+      secretOrKey: cfg.<span class="fn">get</span>(<span class="str">'JWT_SECRET'</span>),
+    });
+  }
+  <span class="kw">async</span> <span class="fn">validate</span>(payload: <span class="cl">JwtPayload</span>) {
+    <span class="kw">return</span> { id: payload.sub, email: payload.email, role: payload.role };
+  }
+}`,
+ex:{title:'Exercise 3 — full login + protected route',body:'Wire up the full flow: POST /auth/login returns a JWT. GET /profile is protected by JwtAuthGuard and returns req.user from the token.',
+steps:['Register JwtModule.registerAsync with JWT_SECRET from ConfigService','Call authService.login(req.user) from the login controller','Create jwt.strategy.ts with validate() returning the JWT payload','Create JwtAuthGuard extending AuthGuard("jwt")','Add GET /auth/profile with @UseGuards(JwtAuthGuard) and verify it returns user info']}},
+
+{id:4,level:'intermediate',title:'Refresh token rotation',sub:'Refresh token, token family, httpOnly cookie, rotation',
+concept:'Access tokens should be short-lived (15 min). Refresh tokens are long-lived (7 days) and stored in an httpOnly cookie. On each use, rotate the refresh token (token family pattern) to detect theft: if a used token is reused, revoke the entire family.',
+code:`<span class="cm">// auth.service.ts</span>
+<span class="kw">async</span> <span class="fn">refreshTokens</span>(userId: string, refreshToken: string) {
+  <span class="kw">const</span> user = <span class="kw">await this</span>.usersService.<span class="fn">findById</span>(userId);
+  <span class="kw">if</span> (!user?.refreshToken) <span class="kw">throw new</span> <span class="cl">ForbiddenException</span>();
+
+  <span class="kw">const</span> match = <span class="kw">await</span> bcrypt.<span class="fn">compare</span>(refreshToken, user.refreshToken);
+  <span class="kw">if</span> (!match) {
+    <span class="kw">await this</span>.usersService.<span class="fn">revokeRefreshToken</span>(userId); <span class="cm">// stolen!</span>
+    <span class="kw">throw new</span> <span class="cl">ForbiddenException</span>();
+  }
+
+  <span class="kw">const</span> tokens = <span class="kw">await this</span>.<span class="fn">issueTokens</span>(user);
+  <span class="kw">await this</span>.usersService.<span class="fn">storeHashedRefreshToken</span>(userId, tokens.refresh_token);
+  <span class="kw">return</span> tokens;
+}`,
+ex:{title:'Exercise 4 — implement refresh token rotation',body:'Add refresh token support: login issues both tokens, POST /auth/refresh rotates the refresh token, POST /auth/logout revokes it.',
+steps:['Add a refreshToken field (hashed) to the User schema','Login: hash and store refresh token, set it in an httpOnly cookie','POST /auth/refresh: validate refresh token, issue new pair, rotate','POST /auth/logout: set refreshToken to null in DB and clear cookie','Test token theft: reuse an old refresh token — expect 403 and full revocation']}},
+
+{id:5,level:'intermediate',title:'Google OAuth2 with Passport',sub:'passport-google-oauth20, callback, user upsert',
+concept:'OAuth2 allows "Login with Google" without handling passwords. Passport\'s google strategy handles the redirect flow. On callback, upsert the user: find by googleId or email, or create a new account.',
+code:`npm install passport-google-oauth20
+npm install -D @types/passport-google-oauth20
+
+<span class="cm">// google.strategy.ts</span>
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">GoogleStrategy</span> <span class="kw">extends</span> <span class="cl">PassportStrategy</span>(<span class="cl">GoogleOauthStrategy</span>, <span class="str">'google'</span>) {
+  <span class="kw">constructor</span>(<span class="kw">private</span> authService: <span class="cl">AuthService</span>) {
+    <span class="kw">super</span>({
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: <span class="str">'/auth/google/callback'</span>,
+      scope: [<span class="str">'email'</span>, <span class="str">'profile'</span>],
+    });
+  }
+  <span class="kw">async</span> <span class="fn">validate</span>(accessToken, refreshToken, profile, done) {
+    <span class="kw">const</span> user = <span class="kw">await this</span>.authService.<span class="fn">findOrCreateOAuthUser</span>({
+      googleId: profile.id,
+      email: profile.emails[<span class="nl">0</span>].value,
+      name: profile.displayName,
+    });
+    done(<span class="kw">null</span>, user);
+  }
+}`,
+ex:{title:'Exercise 5 — Google OAuth login flow',body:'Implement GET /auth/google (redirect to Google) and GET /auth/google/callback (handle response, issue JWT, redirect to frontend).',
+steps:['Create a Google Cloud OAuth app and get CLIENT_ID and CLIENT_SECRET','Build GoogleStrategy extending PassportStrategy(GoogleStrategy)','Add findOrCreateOAuthUser in AuthService (upsert by googleId)','Add two routes: redirect and callback controller methods','On callback, issue a JWT and redirect to http://frontend?token=...']}},
+
+{id:6,level:'intermediate',title:'2FA with TOTP (Google Authenticator)',sub:'speakeasy, QR code, verify TOTP, isTwoFactorEnabled flag',
+concept:'Two-factor authentication adds a second layer using time-based OTP (TOTP). On 2FA setup, generate a secret, return a QR code for the authenticator app to scan. On login, if 2FA is enabled, require a valid TOTP code before issuing the JWT.',
+code:`npm install speakeasy qrcode && npm install -D @types/speakeasy
+
+<span class="cm">// auth.service.ts</span>
+<span class="fn">generate2FASecret</span>(user: <span class="cl">User</span>) {
+  <span class="kw">const</span> secret = speakeasy.generateSecret({
+    name: <span class="str">\`MyApp (\${user.email})\`</span>
+  });
+  <span class="kw">return</span> { secret: secret.base32, otpauthUrl: secret.otpauth_url };
+}
+
+<span class="fn">verify2FAToken</span>(secret: string, token: string) {
+  <span class="kw">return</span> speakeasy.totp.<span class="fn">verify</span>({
+    secret, encoding: <span class="str">'base32'</span>, token, window: <span class="nl">1</span>
+  });
+}`,
+ex:{title:'Exercise 6 — full 2FA enrollment and verification',body:'Build POST /auth/2fa/setup (return QR code), POST /auth/2fa/enable (confirm token, save secret), and modify login to require TOTP when 2FA is enabled.',
+steps:['Add twoFactorSecret and isTwoFactorEnabled to User schema','POST /auth/2fa/setup: generate secret, return QR code as data URL','POST /auth/2fa/enable: verify TOTP token, save secret, set isTwoFactorEnabled=true','Modify login: if isTwoFactorEnabled, return { requires2FA: true } without full JWT','POST /auth/2fa/verify: verify token, then issue full JWT']}},
+
+{id:7,level:'advanced',title:'Session-based auth with Redis',sub:'express-session, connect-redis, session guard',
+concept:'Some applications prefer stateful sessions over JWTs. Store sessions in Redis for scalability across multiple server instances. Use express-session with the connect-redis store. A SessionGuard checks req.session.userId.',
+code:`npm install express-session connect-redis ioredis
+npm install -D @types/express-session
+
+<span class="cm">// main.ts</span>
+<span class="kw">const</span> RedisStore = <span class="fn">connectRedis</span>(session);
+app.<span class="fn">use</span>(session({
+  store: <span class="kw">new</span> <span class="cl">RedisStore</span>({ client: redisClient }),
+  secret: process.env.SESSION_SECRET,
+  resave: <span class="kw">false</span>,
+  saveUninitialized: <span class="kw">false</span>,
+  cookie: { secure: <span class="kw">true</span>, httpOnly: <span class="kw">true</span>, maxAge: <span class="nl">86400000</span> },
+}));
+
+<span class="cm">// On login</span>
+req.session.userId = user._id;
+
+<span class="cm">// SessionGuard</span>
+<span class="fn">canActivate</span>(ctx: <span class="cl">ExecutionContext</span>) {
+  <span class="kw">const</span> req = ctx.<span class="fn">switchToHttp</span>().<span class="fn">getRequest</span>();
+  <span class="kw">return</span> !!req.session?.userId;
+}`,
+ex:{title:'Exercise 7 — session-based auth with Redis',body:'Build a session-based login system: POST /auth/login sets req.session.userId, GET /profile reads it via a SessionGuard, POST /auth/logout calls req.session.destroy().',
+steps:['Install express-session, connect-redis, and ioredis','Configure the session middleware in main.ts with Redis store','Build a SessionGuard that checks req.session.userId','POST /auth/login: validate user, set req.session.userId','Compare JWT vs session auth: when to use each']}},
+
+{id:8,level:'advanced',title:'Security hardening: rate limiting, device fingerprinting, audit log',sub:'throttler, helmet, device tracking, login audit',
+concept:'Production auth needs multiple hardening layers: rate limiting login attempts, binding tokens to device fingerprints, and maintaining an audit log of all authentication events for compliance and intrusion detection.',
+code:`npm install @nestjs/throttler helmet
+
+<span class="cm">// Rate limit login: 5 attempts per 15 minutes</span>
+<span class="dec">@UseGuards</span>(<span class="fn">ThrottlerGuard</span>)
+<span class="dec">@Throttle</span>({ <span class="kw">default</span>: { limit: <span class="nl">5</span>, ttl: <span class="nl">900000</span> } })
+<span class="dec">@Post</span>(<span class="str">'login'</span>)
+<span class="fn">login</span>() { ... }
+
+<span class="cm">// Audit log schema</span>
+<span class="dec">@Schema</span>({ timestamps: <span class="kw">true</span> })
+<span class="kw">export class</span> <span class="cl">AuthEvent</span> {
+  <span class="dec">@Prop</span>() userId: string;
+  <span class="dec">@Prop</span>() event: string;  <span class="cm">// 'login' | 'logout' | 'failed' | '2fa'</span>
+  <span class="dec">@Prop</span>() ip: string;
+  <span class="dec">@Prop</span>() userAgent: string;
+  <span class="dec">@Prop</span>() success: boolean;
+}`,
+ex:{title:'Exercise 8 — production auth hardening',body:'Add rate limiting to all auth endpoints, set security headers with helmet, and build an audit log that records every login attempt with IP, user agent, and outcome.',
+steps:['Install @nestjs/throttler and register ThrottlerModule globally','Apply @Throttle({ default: { limit: 5, ttl: 900000 } }) to POST /auth/login','Install helmet and add app.use(helmet()) in main.ts','Create AuthEvent schema and log every login/logout/failure event','Build GET /auth/events/:userId (admin-only) to view a user\'s auth history']}}
+];
+
+const done=new Set(JSON.parse(localStorage.getItem('auth-done')||'[]'));
+function save(){try{localStorage.setItem('auth-done',JSON.stringify([...done]))}catch(e){}}
+function updateStats(){
+  const n=done.size,t=L.length;
+  document.getElementById('s-done').textContent=n+' / '+t;
+  document.getElementById('s-pct').textContent=Math.round(n/t*100)+'%';
+  document.getElementById('pbar').style.width=(n/t*100)+'%';
+  document.getElementById('s-level').textContent=n<3?'Beginner':n<6?'Intermediate':'Advanced';
+}
+function render(f){
+  const c=document.getElementById('lessons');c.innerHTML='';
+  L.filter(l=>f==='all'||l.level===f).forEach(l=>{
+    const d=done.has(l.id);
+    const el=document.createElement('div');el.className='card';
+    el.innerHTML=`<div class="card-header" onclick="toggle(${l.id})">
+      <div class="num ${d?'done':''}" id="n${l.id}">${d?'✓':l.id}</div>
+      <div class="title-wrap">
+        <div class="lesson-title">${l.title}<span class="badge ${l.level}">${l.level}</span></div>
+        <div class="lesson-sub">${l.sub}</div>
+      </div>
+      <div class="chevron" id="ch${l.id}">›</div>
+    </div>
+    <div class="card-body" id="b${l.id}">
+      <div class="concept-box"><div class="section-label">Concept</div><p class="concept-text">${l.concept}</p></div>
+      <pre>${l.code}</pre>
+      <div class="ex-box">
+        <div class="ex-title">${l.ex.title}</div>
+        <p class="ex-body">${l.ex.body}</p>
+        ${l.ex.steps?'<ul class="steps">'+l.ex.steps.map(s=>`<li>${s}</li>`).join('')+'</ul>':''}
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-done ${d?'active':''}" id="mb${l.id}" onclick="mark(${l.id})">${d?'✓ Completed':'Mark complete'}</button>
+      </div>
+    </div>`;
+    c.appendChild(el);
+  });
+}
+function toggle(id){const b=document.getElementById('b'+id),ch=document.getElementById('ch'+id);const o=b.classList.toggle('open');ch.style.transform=o?'rotate(90deg)':'';}
+function mark(id){
+  done.has(id)?done.delete(id):done.add(id);save();updateStats();
+  const b=document.getElementById('mb'+id),n=document.getElementById('n'+id);
+  if(done.has(id)){b.classList.add('active');b.textContent='✓ Completed';n.classList.add('done');n.textContent='✓';}
+  else{b.classList.remove('active');b.textContent='Mark complete';n.classList.remove('done');n.textContent=id;}
+}
+function filter(f,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');render(f);}
+render('all');updateStats();
+</script>
+</body>
+</html>

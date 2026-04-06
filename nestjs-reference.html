@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NestJS SaaS — Stack, Structure & Roadmap</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #09090f;
+            --surface: #10101a;
+            --surface2: #18182a;
+            --surface3: #1f1f38;
+            --border: rgba(180, 160, 255, 0.08);
+            --border2: rgba(180, 160, 255, 0.16);
+            --text: #e0daf8;
+            --muted: #5a5880;
+            --accent: #a78bfa;
+            --accent2: #34d399;
+            --accent3: #f59e0b;
+            --coral: #f87171;
+            --font-mono: 'Fira Code', 'Cascadia Code', monospace;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 14px;
+            line-height: 1.65;
+            min-height: 100vh
+        }
+
+        header {
+            padding: 3rem 2rem 1.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            border-bottom: 0.5px solid var(--border);
+            margin-bottom: 0
+        }
+
+        .eyebrow {
+            font-size: 11px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 500;
+            margin-bottom: .5rem
+        }
+
+        h1 {
+            font-size: clamp(22px, 3.5vw, 34px);
+            font-weight: 300;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: .35rem
+        }
+
+        h1 em {
+            color: var(--accent);
+            font-style: normal;
+            font-weight: 500
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 0
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            max-width: 1100px;
+            margin: 0 auto;
+            min-height: calc(100vh - 120px)
+        }
+
+        .sidebar {
+            border-right: 0.5px solid var(--border);
+            padding: 1.5rem 1rem;
+            position: sticky;
+            top: 0;
+            height: calc(100vh - 120px);
+            overflow-y: auto
+        }
+
+        .nav-section {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--muted);
+            font-weight: 500;
+            margin: 1.2rem 0 .5rem;
+            padding-left: 8px
+        }
+
+        .nav-item {
+            display: block;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 12.5px;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .15s;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit
+        }
+
+        .nav-item:hover {
+            background: var(--surface2);
+            color: var(--text)
+        }
+
+        .nav-item.active {
+            background: rgba(167, 139, 250, .12);
+            color: var(--accent);
+            font-weight: 500
+        }
+
+        .content {
+            padding: 2rem
+        }
+
+        .section {
+            display: none
+        }
+
+        .section.active {
+            display: block
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 400;
+            color: #fff;
+            margin-bottom: 1.25rem
+        }
+
+        h3 {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: .75rem;
+            margin-top: 1.5rem
+        }
+
+        p {
+            font-size: 13.5px;
+            color: #a8a0d0;
+            line-height: 1.7;
+            margin-bottom: 1rem
+        }
+
+        .stack-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 12px;
+            margin-bottom: 1.5rem
+        }
+
+        .stack-card {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.1rem
+        }
+
+        .stack-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--muted);
+            margin-bottom: 6px;
+            font-weight: 500
+        }
+
+        .stack-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: #fff;
+            margin-bottom: 3px
+        }
+
+        .stack-why {
+            font-size: 12px;
+            color: #7870a8;
+            line-height: 1.5
+        }
+
+        .stack-badge {
+            display: inline-block;
+            font-size: 10px;
+            padding: 1px 7px;
+            border-radius: 99px;
+            margin-top: 6px
+        }
+
+        .badge-core {
+            background: rgba(167, 139, 250, .15);
+            color: #c4aaff;
+            border: 0.5px solid rgba(167, 139, 250, .3)
+        }
+
+        .badge-opt {
+            background: rgba(52, 211, 153, .1);
+            color: #6ee7c0;
+            border: 0.5px solid rgba(52, 211, 153, .25)
+        }
+
+        .tree {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.9;
+            background: #060610;
+            border: 0.5px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem 1.5rem;
+            color: #908aba;
+            overflow-x: auto;
+            margin-bottom: 1.5rem
+        }
+
+        .tree .dir {
+            color: #a78bfa
+        }
+
+        .tree .file {
+            color: #908aba
+        }
+
+        .tree .comment {
+            color: #353550
+        }
+
+        .roadmap {
+            margin-bottom: 1.5rem
+        }
+
+        .phase {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden
+        }
+
+        .phase-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: .9rem 1.1rem;
+            cursor: pointer;
+            user-select: none
+        }
+
+        .phase-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0
+        }
+
+        .dot-1 {
+            background: #34d399
+        }
+
+        .dot-2 {
+            background: #60a5fa
+        }
+
+        .dot-3 {
+            background: #f59e0b
+        }
+
+        .dot-4 {
+            background: #f87171
+        }
+
+        .phase-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #fff;
+            flex: 1
+        }
+
+        .phase-dur {
+            font-size: 11px;
+            color: var(--muted)
+        }
+
+        .phase-ch {
+            font-size: 14px;
+            color: var(--muted);
+            transition: transform .2s
+        }
+
+        .phase-body {
+            display: none;
+            padding: 0 1.1rem 1rem;
+            border-top: 0.5px solid var(--border)
+        }
+
+        .phase-body.open {
+            display: block
+        }
+
+        .task-list {
+            padding-left: 1.1rem;
+            margin-top: .75rem
+        }
+
+        .task-list li {
+            font-size: 12.5px;
+            color: #8880b8;
+            line-height: 1.9;
+            list-style: none;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px
+        }
+
+        .task-list li::before {
+            content: '—';
+            color: var(--muted);
+            flex-shrink: 0
+        }
+
+        .task-check {
+            width: 14px;
+            height: 14px;
+            border: 0.5px solid var(--border2);
+            border-radius: 3px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-top: 3px;
+            transition: all .15s
+        }
+
+        .task-check.done {
+            background: var(--accent2);
+            border-color: var(--accent2);
+            color: #0a1a14
+        }
+
+        .task-text.done {
+            text-decoration: line-through;
+            color: var(--muted)
+        }
+
+        .dod-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 1.5rem
+        }
+
+        .dod-card {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.1rem
+        }
+
+        .dod-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: #fff;
+            margin-bottom: .6rem;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .dod-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%
+        }
+
+        .dod-items {
+            list-style: none;
+            padding: 0
+        }
+
+        .dod-items li {
+            font-size: 12px;
+            color: #7870a8;
+            line-height: 1.85;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px
+        }
+
+        .dod-items li::before {
+            content: '✓';
+            color: var(--accent2);
+            flex-shrink: 0;
+            font-size: 11px;
+            margin-top: 2px
+        }
+
+        pre {
+            background: #060610;
+            border: 0.5px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            font-size: 12px;
+            line-height: 1.7;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            margin-bottom: 1rem;
+            color: #908aba;
+            white-space: pre
+        }
+
+        .kw {
+            color: #89ddff
+        }
+
+        .str {
+            color: #c3e88d
+        }
+
+        .cm {
+            color: #303050
+        }
+
+        @media(max-width:700px) {
+            .layout {
+                grid-template-columns: 1fr
+            }
+
+            .sidebar {
+                display: none
+            }
+
+            .dod-grid {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="eyebrow">NestJS SaaS · Reference</div>
+        <h1>Stack, Structure & <em>Roadmap</em></h1>
+        <p class="subtitle">Opinionated reference for building a production-grade multi-tenant NestJS SaaS</p>
+    </header>
+    <div class="layout">
+        <nav class="sidebar">
+            <div class="nav-section">Reference</div>
+            <button class="nav-item active" onclick="show('stack',this)">Suggested stack</button>
+            <button class="nav-item" onclick="show('structure',this)">Project structure</button>
+            <button class="nav-item" onclick="show('roadmap',this)">Roadmap</button>
+            <button class="nav-item" onclick="show('dod',this)">Definition of done</button>
+            <button class="nav-item" onclick="show('scripts',this)">Useful commands</button>
+        </nav>
+        <main class="content">
+
+            <!-- STACK -->
+            <div class="section active" id="sec-stack">
+                <h2>Suggested stack</h2>
+                <p>Every choice here is opinionated for a multi-tenant SaaS with auth, RBAC, and caching. Swap where it
+                    makes sense for your context.</p>
+                <h3>Core</h3>
+                <div class="stack-grid">
+                    <div class="stack-card">
+                        <div class="stack-label">Framework</div>
+                        <div class="stack-name">NestJS</div>
+                        <div class="stack-why">Modular, DI-first, TypeScript native. Guards, interceptors, and pipes
+                            compose cleanly.</div><span class="stack-badge badge-core">Core</span>
+                    </div>
+                    <div class="stack-card">
+                        <div class="stack-label">Database</div>
+                        <div class="stack-name">MongoDB + Mongoose</div>
+                        <div class="stack-why">Flexible schema evolution. Per-tenant DB isolation is trivial with
+                            dynamic connections.</div><span class="stack-badge badge-core">Core</span>
+                    </div>
+                    <div class="stack-card">
+                        <div class="stack-label">Cache</div>
+                        <div class="stack-name">Redis + @nestjs/cache-manager</div>
+                        <div class="stack-why">Shared cache, session store, rate limit store, and pub/sub — one
+                            infrastructure tool.</div><span class="stack-badge badge-core">Core</span>
+                    </div>
+                    <div class="stack-card">
+                        <div class="stack-label">Auth</div>
+                        <div class="stack-name">Passport.js + JWT + bcrypt</div>
+                        <div class="stack-why">Proven, composable strategy pattern. LocalStrategy + JwtStrategy covers
+                            90% of cases.</div><span class="stack-badge badge-core">Core</span>
+                    </div>
+                    <div class="stack-card">
+                        <div class="stack-label">Authorization</div>
+                        <div class="stack-name">CASL</div>
+                        <div class="stack-why">Attribute-based access control. Handles ownership, tenant isolation, and
+                            field-level permissions.</div><span class="stack-badge badge-core">Core</span>
+                    </div>
+                    <div class="stack-card">
+                        <div class="stack-label">Validation</div>
+                        <div class="stack-name">class-validator + class-transformer</div>
+                        <div class="stack-why">Decorative DTO validation. Pairs with NestJS ValidationPipe for automatic
+                            request validation.</div><span class="stack-badge badge-core">Core</span>
+                    </div>
+                    <div class="stack-card">
+                        <div class="stack-label">Config</div>
+                        <div class="stack-name">@nestjs/config</div>
+                        <div class="stack-why">Env-based config with validation via Joi or class-validator. registerAs()
+                            for namespaced config.</div><span class="stack-badge badge-core">Core</span>
+                    </div>
+                    <div class="stack-card">
+                        <div class="stack-label">Job queue</div>
+                        <div class="stack-name">BullMQ + @nestjs/bull</div>
+                        <div class="stack-why">Redis-backed job queue for async operations: email, export, provisioning,
+                            scheduled tasks.</div><span class="stack-badge badge-core">Core</span>
+                    </div>
+                </div>
+                <h3>Optional / situational</h3>
+                <div class="stack-grid">
+                    <div class="stack-card">
+                        <div class="stack-label">API style</div>
+                        <div class="stack-name">GraphQL (optional)</div>
+                        <div class="stack-why">Add @nestjs/graphql + Apollo if clients need flexible queries. REST is
+                            simpler to start.</div><span class="stack-badge badge-opt">Optional</span>
+                    </div>
+                    <div class="stack-card">
+                        <div class="stack-label">Email</div>
+                        <div class="stack-name">Resend / Nodemailer</div>
+                        <div class="stack-why">Resend for transactional email with great DX. Nodemailer for self-hosted
+                            / SMTP setups.</div><span class="stack-badge badge-opt">Optional</span>
+                    </div>
+                    <div class="stack-card">
+                        <div class="stack-label">Storage</div>
+                        <div class="stack-name">AWS S3 / Cloudflare R2</div>
+                        <div class="stack-why">R2 is S3-compatible with no egress fees. Use for tenant data exports,
+                            file uploads.</div><span class="stack-badge badge-opt">Optional</span>
+                    </div>
+                    <div class="stack-card">
+                        <div class="stack-label">Observability</div>
+                        <div class="stack-name">Pino + OpenTelemetry</div>
+                        <div class="stack-why">Pino for structured JSON logs. OTEL for distributed tracing across
+                            services.</div><span class="stack-badge badge-opt">Optional</span>
+                    </div>
+                    <div class="stack-card">
+                        <div class="stack-label">Testing</div>
+                        <div class="stack-name">Jest + Supertest</div>
+                        <div class="stack-why">Jest for unit/integration, Supertest for e2e HTTP tests. NestJS testing
+                            module makes DI easy to mock.</div><span class="stack-badge badge-opt">Optional</span>
+                    </div>
+                    <div class="stack-card">
+                        <div class="stack-label">Payments</div>
+                        <div class="stack-name">Stripe</div>
+                        <div class="stack-why">Stripe webhooks for subscription events. Store plan in the Tenant
+                            document, sync on webhook.</div><span class="stack-badge badge-opt">Optional</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STRUCTURE -->
+            <div class="section" id="sec-structure">
+                <h2>Project structure</h2>
+                <p>A feature-based module structure. Each domain (auth, users, tenants, posts) is self-contained with
+                    its own controller, service, schema, repository, and guards.</p>
+                <div class="tree">
+                    <span class="dir">src/</span>
+                    ├── <span class="dir">common/</span> <span class="comment"># shared across all modules</span>
+                    │ ├── <span class="dir">decorators/</span>
+                    │ │ ├── <span class="file">current-user.decorator.ts</span>
+                    │ │ ├── <span class="file">roles.decorator.ts</span>
+                    │ │ └── <span class="file">require-feature.decorator.ts</span>
+                    │ ├── <span class="dir">guards/</span>
+                    │ │ ├── <span class="file">jwt-auth.guard.ts</span>
+                    │ │ ├── <span class="file">roles.guard.ts</span>
+                    │ │ ├── <span class="file">policies.guard.ts</span>
+                    │ │ └── <span class="file">feature-flag.guard.ts</span>
+                    │ ├── <span class="dir">interceptors/</span>
+                    │ │ ├── <span class="file">transform.interceptor.ts</span>
+                    │ │ └── <span class="file">logging.interceptor.ts</span>
+                    │ ├── <span class="dir">filters/</span>
+                    │ │ └── <span class="file">all-exceptions.filter.ts</span>
+                    │ ├── <span class="dir">pipes/</span>
+                    │ │ └── <span class="file">parse-object-id.pipe.ts</span>
+                    │ └── <span class="dir">base/</span>
+                    │ └── <span class="file">tenant-aware.repository.ts</span>
+                    │
+                    ├── <span class="dir">config/</span> <span class="comment"># env-based configuration</span>
+                    │ ├── <span class="file">app.config.ts</span>
+                    │ ├── <span class="file">database.config.ts</span>
+                    │ ├── <span class="file">redis.config.ts</span>
+                    │ └── <span class="file">jwt.config.ts</span>
+                    │
+                    ├── <span class="dir">auth/</span> <span class="comment"># authentication module</span>
+                    │ ├── <span class="dir">strategies/</span>
+                    │ │ ├── <span class="file">local.strategy.ts</span>
+                    │ │ ├── <span class="file">jwt.strategy.ts</span>
+                    │ │ └── <span class="file">google.strategy.ts</span>
+                    │ ├── <span class="dir">dto/</span>
+                    │ │ ├── <span class="file">register.dto.ts</span>
+                    │ │ └── <span class="file">login.dto.ts</span>
+                    │ ├── <span class="file">auth.controller.ts</span>
+                    │ ├── <span class="file">auth.service.ts</span>
+                    │ └── <span class="file">auth.module.ts</span>
+                    │
+                    ├── <span class="dir">users/</span> <span class="comment"># user management</span>
+                    │ ├── <span class="dir">schemas/</span>
+                    │ │ └── <span class="file">user.schema.ts</span>
+                    │ ├── <span class="dir">dto/</span>
+                    │ │ └── <span class="file">update-user.dto.ts</span>
+                    │ ├── <span class="file">users.controller.ts</span>
+                    │ ├── <span class="file">users.service.ts</span>
+                    │ └── <span class="file">users.module.ts</span>
+                    │
+                    ├── <span class="dir">tenants/</span> <span class="comment"># multi-tenancy</span>
+                    │ ├── <span class="dir">schemas/</span>
+                    │ │ └── <span class="file">tenant.schema.ts</span>
+                    │ ├── <span class="dir">middleware/</span>
+                    │ │ └── <span class="file">tenant.middleware.ts</span>
+                    │ ├── <span class="file">tenant-connection-pool.service.ts</span>
+                    │ ├── <span class="file">tenant-provisioner.service.ts</span>
+                    │ ├── <span class="file">tenants.controller.ts</span>
+                    │ ├── <span class="file">tenants.service.ts</span>
+                    │ └── <span class="file">tenants.module.ts</span>
+                    │
+                    ├── <span class="dir">posts/</span> <span class="comment"># example feature module</span>
+                    │ ├── <span class="dir">schemas/</span>
+                    │ │ └── <span class="file">post.schema.ts</span>
+                    │ ├── <span class="dir">dto/</span>
+                    │ ├── <span class="file">posts.controller.ts</span>
+                    │ ├── <span class="file">posts.service.ts</span>
+                    │ ├── <span class="file">posts.repository.ts</span> <span class="comment"># extends
+                        TenantAwareRepository</span>
+                    │ └── <span class="file">posts.module.ts</span>
+                    │
+                    ├── <span class="dir">casl/</span> <span class="comment"># CASL ability factory</span>
+                    │ ├── <span class="file">casl-ability.factory.ts</span>
+                    │ └── <span class="file">casl.module.ts</span>
+                    │
+                    ├── <span class="file">app.module.ts</span>
+                    └── <span class="file">main.ts</span>
+                </div>
+                <h3>Module template</h3>
+                <pre><span class="cm">// Every feature module follows this pattern:</span>
+<span class="kw">@Module</span>({
+  imports: [
+    <span class="kw">MongooseModule</span>.forFeature([{ name: <span class="kw">Post</span>.name, schema: PostSchema }]),
+  ],
+  controllers: [PostsController],
+  providers: [PostsService, PostsRepository, CaslAbilityFactory],
+  exports: [PostsService],
+})
+<span class="kw">export class</span> PostsModule {}</pre>
+            </div>
+
+            <!-- ROADMAP -->
+            <div class="section" id="sec-roadmap">
+                <h2>Roadmap</h2>
+                <p>A 12-week learning and build roadmap. Click each phase to expand tasks. Check off items as you go.
+                </p>
+                <div class="roadmap" id="roadmap"></div>
+            </div>
+
+            <!-- DOD -->
+            <div class="section" id="sec-dod">
+                <h2>Definition of done</h2>
+                <p>A feature is "done" only when it meets all criteria in its category. Use this as a pull request
+                    checklist.</p>
+                <div class="dod-grid" id="dod-grid"></div>
+            </div>
+
+            <!-- SCRIPTS -->
+            <div class="section" id="sec-scripts">
+                <h2>Useful commands</h2>
+                <h3>Project setup</h3>
+                <pre><span class="cm"># Bootstrap</span>
+npm i -g @nestjs/cli
+nest new my-saas && cd my-saas
+
+<span class="cm"># Core dependencies</span>
+npm install @nestjs/mongoose mongoose
+npm install @nestjs/passport passport passport-local passport-jwt
+npm install @nestjs/jwt @nestjs/config @nestjs/cache-manager
+npm install cache-manager cache-manager-redis-yet ioredis
+npm install @nestjs/throttler helmet bcrypt class-validator class-transformer
+npm install @casl/ability @casl/mongoose
+npm install -D @types/passport-local @types/passport-jwt @types/bcrypt</pre>
+                <h3>NestJS CLI generators</h3>
+                <pre><span class="cm"># Generate a full feature module</span>
+nest g module posts
+nest g controller posts
+nest g service posts
+
+<span class="cm"># Or all at once with --no-spec</span>
+nest g resource posts --no-spec</pre>
+                <h3>Docker development</h3>
+                <pre><span class="cm"># docker-compose.yml for local dev</span>
+<span class="str">version</span>: '3.8'
+<span class="str">services</span>:
+  <span class="str">mongo</span>:
+    image: mongo:7
+    ports: ['27017:27017']
+    volumes: [mongo_data:/data/db]
+  <span class="str">redis</span>:
+    image: redis:7-alpine
+    ports: ['6379:6379']
+<span class="str">volumes</span>:
+  mongo_data:</pre>
+                <h3>Test commands</h3>
+                <pre><span class="cm"># Unit tests</span>
+npm run test
+
+<span class="cm"># E2E tests</span>
+npm run test:e2e
+
+<span class="cm"># Coverage</span>
+npm run test:cov
+
+<span class="cm"># Watch mode</span>
+npm run test:watch</pre>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const PHASES = [
+            {
+                id: 1, color: 'dot-1', title: 'Phase 1 — Foundation', dur: 'Weeks 1–2', tasks: [
+                    'Set up NestJS project with TypeScript strict mode',
+                    'Connect MongoDB with MongooseModule.forRootAsync',
+                    'Set up ConfigModule with .env validation via Joi',
+                    'Implement User schema with Role enum',
+                    'Build full CRUD for Users with class-validator DTOs',
+                    'Add global ValidationPipe, ClassSerializerInterceptor',
+                    'Write first unit tests for UsersService',
+                ]
+            },
+            {
+                id: 2, color: 'dot-2', title: 'Phase 2 — Authentication', dur: 'Weeks 3–4', tasks: [
+                    'Implement bcrypt password hashing in register flow',
+                    'Build LocalStrategy + LocalAuthGuard',
+                    'Issue JWT access tokens on login',
+                    'Build JwtStrategy + JwtAuthGuard for protected routes',
+                    'Add refresh token rotation with httpOnly cookie',
+                    'Implement POST /auth/logout with token revocation',
+                    'Write e2e tests for the full auth flow',
+                ]
+            },
+            {
+                id: 3, color: 'dot-2', title: 'Phase 3 — Authorization (RBAC)', dur: 'Weeks 5–6', tasks: [
+                    'Create @Roles decorator and RolesGuard',
+                    'Set up global APP_GUARD with both JWT and Roles guards',
+                    'Implement ownership guard for resource-level access',
+                    'Install CASL and build CaslAbilityFactory',
+                    'Create @CheckPolicies decorator and PoliciesGuard',
+                    'Add field-level serialization with ClassSerializerInterceptor',
+                    'Test all guard combinations with different role JWTs',
+                ]
+            },
+            {
+                id: 4, color: 'dot-3', title: 'Phase 4 — Multi-tenancy', dur: 'Weeks 7–8', tasks: [
+                    'Create Tenant schema with plan, featureFlags, isActive',
+                    'Build TenantMiddleware to extract and validate X-Tenant-ID',
+                    'Implement TenantAwareRepository base class (REQUEST scope)',
+                    'Refactor all feature repos to extend TenantAwareRepository',
+                    'Build TenantConnectionPool for DB-per-tenant isolation',
+                    'Implement tenant provisioning service (idempotent)',
+                    'Verify data isolation with two test tenants',
+                ]
+            },
+            {
+                id: 5, color: 'dot-3', title: 'Phase 5 — Caching & Performance', dur: 'Week 9', tasks: [
+                    'Add Redis store to CacheModule.registerAsync',
+                    'Apply @CacheTTL to read-heavy GET routes',
+                    'Implement cache-aside pattern in critical services',
+                    'Add cache invalidation on all mutation operations',
+                    'Cache tenant permission lookups in Redis (TTL 60s)',
+                    'Add Redlock for stampede prevention on hot keys',
+                    'Load test and verify cache hit rates > 80%',
+                ]
+            },
+            {
+                id: 6, color: 'dot-4', title: 'Phase 6 — Production Hardening', dur: 'Weeks 10–12', tasks: [
+                    'Add @nestjs/throttler rate limiting to all auth endpoints',
+                    'Add helmet() security headers in main.ts',
+                    'Build auth audit log (every login/logout/failure)',
+                    'Implement tenant data export with BullMQ job queue',
+                    'Add GDPR-compliant tenant deletion (right to erasure)',
+                    'Set up structured logging with Pino',
+                    'Write integration tests achieving > 70% coverage',
+                    'Document all endpoints with @nestjs/swagger',
+                ]
+            },
+        ];
+
+        const DODS = [
+            { title: 'API endpoint', color: '#a78bfa', items: ['DTO with class-validator decorators', 'Global ValidationPipe rejects invalid input', 'Returns correct HTTP status codes', 'Swagger @ApiOperation and @ApiResponse added', 'At least one happy-path unit test'] },
+            { title: 'Authentication', color: '#34d399', items: ['Passwords hashed with bcrypt rounds ≥ 10', 'JWT secret loaded from environment variable', 'Refresh token rotation implemented', 'Sensitive fields excluded from all responses', 'Auth events logged to audit collection'] },
+            { title: 'Authorization', color: '#f59e0b', items: ['Routes protected by JwtAuthGuard', '@Roles or @CheckPolicies applied where needed', 'Ownership checks prevent cross-user access', 'Field-level serialization by role verified', 'Tests covering 403 cases for each guard'] },
+            { title: 'Multi-tenancy', color: '#60a5fa', items: ['Every query scoped to tenantId (never trust client)', 'Tenant validated and attached by middleware', 'No cross-tenant data leakage in any response', 'Feature flags enforced on plan-gated endpoints', 'New tenant provisionable via admin API'] },
+            { title: 'Caching', color: '#f87171', items: ['Cache key includes all query-affecting params', 'TTL appropriate to data freshness requirements', 'Cache invalidated on all mutation paths', 'No sensitive data (PII, tokens) cached', 'Cache miss does not cause stampede'] },
+            { title: 'Code quality', color: '#c084fc', items: ['No TypeScript any types in business logic', 'No hardcoded secrets or connection strings', 'All env vars documented in .env.example', 'Functions are < 30 lines and single-purpose', 'PR reviewed and approved by at least one peer'] },
+        ];
+
+        function renderRoadmap() {
+            const c = document.getElementById('roadmap');
+            const saved = JSON.parse(localStorage.getItem('roadmap-tasks') || '{}');
+            c.innerHTML = '';
+            PHASES.forEach(p => {
+                const div = document.createElement('div'); div.className = 'phase';
+                const bodyId = 'ph-' + p.id;
+                div.innerHTML = `<div class="phase-header" onclick="togglePhase('${bodyId}')">
+      <div class="phase-dot ${p.color}"></div>
+      <div class="phase-title">${p.title}</div>
+      <div class="phase-dur">${p.dur}</div>
+      <div class="phase-ch" id="phc-${p.id}">›</div>
+    </div>
+    <div class="phase-body" id="${bodyId}">
+      <ul class="task-list">
+        ${p.tasks.map((t, i) => {
+                    const key = `p${p.id}-t${i}`;
+                    const done = saved[key];
+                    return `<li>
+            <div class="task-check ${done ? 'done' : ''}" id="tc-${key}" onclick="toggleTask('${key}',${p.id},${i})">${done ? '✓' : ''}</div>
+            <span class="task-text ${done ? 'done' : ''}" id="tt-${key}">${t}</span>
+          </li>`;
+                }).join('')}
+      </ul>
+    </div>`;
+                c.appendChild(div);
+            });
+        }
+
+        function togglePhase(id) {
+            const b = document.getElementById(id);
+            const num = id.replace('ph-', '');
+            const ch = document.getElementById('phc-' + num);
+            const o = b.classList.toggle('open');
+            if (ch) ch.style.transform = o ? 'rotate(90deg)' : '';
+        }
+
+        function toggleTask(key, pid, ti) {
+            const saved = JSON.parse(localStorage.getItem('roadmap-tasks') || '{}');
+            saved[key] = !saved[key];
+            localStorage.setItem('roadmap-tasks', JSON.stringify(saved));
+            const check = document.getElementById('tc-' + key);
+            const text = document.getElementById('tt-' + key);
+            if (saved[key]) { check.classList.add('done'); check.textContent = '✓'; text.classList.add('done'); }
+            else { check.classList.remove('done'); check.textContent = ''; text.classList.remove('done'); }
+        }
+
+        function renderDod() {
+            const c = document.getElementById('dod-grid'); c.innerHTML = '';
+            DODS.forEach(d => {
+                const div = document.createElement('div'); div.className = 'dod-card';
+                div.innerHTML = `<div class="dod-title"><div class="dod-dot" style="background:${d.color}"></div>${d.title}</div>
+    <ul class="dod-items">${d.items.map(i => `<li>${i}</li>`).join('')}</ul>`;
+                c.appendChild(div);
+            });
+        }
+
+        function show(id, el) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('sec-' + id).classList.add('active');
+            el.classList.add('active');
+        }
+
+        renderRoadmap();
+        renderDod();
+    </script>
+</body>
+
+</html>

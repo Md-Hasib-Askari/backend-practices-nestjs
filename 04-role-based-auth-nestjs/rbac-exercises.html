@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RBAC in NestJS — Beginner to Advanced</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #0f0a08;
+            --surface: #1a1208;
+            --surface2: #231a0c;
+            --border: rgba(255, 220, 140, 0.08);
+            --border2: rgba(255, 220, 140, 0.16);
+            --text: #ede0c8;
+            --muted: #7a6545;
+            --accent: #E8A838;
+            --accent-dim: rgba(232, 168, 56, 0.12);
+            --green: #6bc98a;
+            --coral: #d9705a;
+            --blue: #7aaed6;
+            --font-mono: 'Fira Code', 'Cascadia Code', monospace;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 15px;
+            line-height: 1.65;
+            min-height: 100vh
+        }
+
+        header {
+            padding: 3rem 2rem 1.5rem;
+            max-width: 900px;
+            margin: 0 auto
+        }
+
+        .eyebrow {
+            font-size: 11px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 500;
+            margin-bottom: .6rem
+        }
+
+        h1 {
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 300;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: .4rem
+        }
+
+        h1 em {
+            color: var(--accent);
+            font-style: normal;
+            font-weight: 500
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        .wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 1.75rem
+        }
+
+        .stat {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 10px;
+            padding: .85rem 1rem
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 3px
+        }
+
+        .stat-val {
+            font-size: 21px;
+            font-weight: 500;
+            color: #fff
+        }
+
+        .progress-wrap {
+            background: var(--surface);
+            border-radius: 99px;
+            height: 3px;
+            margin-bottom: 1.75rem;
+            overflow: hidden
+        }
+
+        .progress-fill {
+            background: var(--accent);
+            height: 3px;
+            border-radius: 99px;
+            transition: width .4s ease;
+            width: 0%
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem
+        }
+
+        .tab {
+            padding: 5px 14px;
+            border-radius: 99px;
+            border: 0.5px solid var(--border2);
+            background: transparent;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--muted);
+            font-family: inherit;
+            transition: all .15s
+        }
+
+        .tab:hover {
+            background: var(--surface2);
+            color: var(--text)
+        }
+
+        .tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #0f0a08;
+            font-weight: 500
+        }
+
+        .card {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            transition: border-color .2s
+        }
+
+        .card:hover {
+            border-color: var(--border2)
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 1.1rem 1.25rem;
+            cursor: pointer;
+            user-select: none
+        }
+
+        .num {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--surface2);
+            border: 0.5px solid var(--border2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+            flex-shrink: 0;
+            margin-top: 1px;
+            transition: all .2s
+        }
+
+        .num.done {
+            background: rgba(232, 168, 56, .15);
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .title-wrap {
+            flex: 1
+        }
+
+        .lesson-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .lesson-sub {
+            font-size: 12.5px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-weight: 400;
+            letter-spacing: .04em
+        }
+
+        .badge.beginner {
+            background: rgba(107, 201, 138, .12);
+            color: #8adaaa;
+            border: 0.5px solid rgba(107, 201, 138, .25)
+        }
+
+        .badge.intermediate {
+            background: rgba(122, 174, 214, .12);
+            color: #9ac4e0;
+            border: 0.5px solid rgba(122, 174, 214, .25)
+        }
+
+        .badge.advanced {
+            background: rgba(217, 112, 90, .12);
+            color: #e8907a;
+            border: 0.5px solid rgba(217, 112, 90, .25)
+        }
+
+        .chevron {
+            font-size: 16px;
+            color: var(--muted);
+            transition: transform .2s;
+            flex-shrink: 0;
+            margin-top: 5px
+        }
+
+        .card-body {
+            display: none;
+            padding: 0 1.25rem 1.25rem;
+            border-top: 0.5px solid var(--border)
+        }
+
+        .card-body.open {
+            display: block
+        }
+
+        .concept-box {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: .9rem 1.1rem;
+            margin: 1rem 0
+        }
+
+        .section-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--muted);
+            font-weight: 500;
+            margin-bottom: 7px
+        }
+
+        .concept-text {
+            font-size: 13.5px;
+            color: #c8b898;
+            line-height: 1.7
+        }
+
+        pre {
+            background: #080600;
+            border: 0.5px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            font-size: 12px;
+            line-height: 1.7;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            margin-bottom: 1rem;
+            color: #c8b898;
+            white-space: pre
+        }
+
+        .kw {
+            color: #89ddff
+        }
+
+        .str {
+            color: #c3e88d
+        }
+
+        .cm {
+            color: #4a3820
+        }
+
+        .fn {
+            color: #82aaff
+        }
+
+        .cl {
+            color: #ffcb8b
+        }
+
+        .dec {
+            color: #c792ea
+        }
+
+        .nl {
+            color: #f78c6c
+        }
+
+        .ex-box {
+            border: 0.5px solid rgba(232, 168, 56, .25);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            background: rgba(232, 168, 56, .05);
+            margin-bottom: 1rem
+        }
+
+        .ex-title {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 7px
+        }
+
+        .ex-body {
+            font-size: 13px;
+            color: #a08060;
+            line-height: 1.65;
+            margin-bottom: 7px
+        }
+
+        .steps {
+            padding-left: 1.1rem;
+            font-size: 12.5px;
+            color: #a08060;
+            line-height: 1.9
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px
+        }
+
+        .btn {
+            padding: 6px 15px;
+            border-radius: 7px;
+            border: 0.5px solid var(--border2);
+            background: transparent;
+            color: var(--text);
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .15s
+        }
+
+        .btn:hover {
+            background: var(--surface2)
+        }
+
+        .btn-done {
+            border-color: rgba(232, 168, 56, .35);
+            color: var(--accent)
+        }
+
+        .btn-done:hover {
+            background: rgba(232, 168, 56, .1)
+        }
+
+        .btn-done.active {
+            background: var(--accent);
+            color: #0f0a08;
+            border-color: var(--accent);
+            font-weight: 500
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="eyebrow">Interactive curriculum · NestJS Series</div>
+        <h1>Role-Based <em>Authorization</em></h1>
+        <p class="subtitle">Guards, decorators, CASL, ABAC, and field-level permissions — beginner to advanced</p>
+    </header>
+    <div class="wrap">
+        <div class="stat-row">
+            <div class="stat">
+                <div class="stat-label">Completed</div>
+                <div class="stat-val" id="s-done">0 / 8</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Level</div>
+                <div class="stat-val" id="s-level">Beginner</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Progress</div>
+                <div class="stat-val" id="s-pct">0%</div>
+            </div>
+        </div>
+        <div class="progress-wrap">
+            <div class="progress-fill" id="pbar"></div>
+        </div>
+        <div class="tabs">
+            <button class="tab active" onclick="filter('all',this)">All</button>
+            <button class="tab" onclick="filter('beginner',this)">Beginner</button>
+            <button class="tab" onclick="filter('intermediate',this)">Intermediate</button>
+            <button class="tab" onclick="filter('advanced',this)">Advanced</button>
+        </div>
+        <div id="lessons"></div>
+    </div>
+    <script>
+        const L = [
+            {
+                id: 1, level: 'beginner', title: 'Roles enum and user model', sub: 'Role enum, @Prop with enum, role in JWT payload',
+                concept: 'The foundation of RBAC is a role enum. Define roles as a TypeScript enum, attach them to the User schema, and include the role in the JWT payload so every request carries the user\'s role without a DB lookup.',
+                code: `<span class="cm">// role.enum.ts</span>
+<span class="kw">export enum</span> <span class="cl">Role</span> {
+  USER  = <span class="str">'user'</span>,
+  ADMIN = <span class="str">'admin'</span>,
+  EDITOR= <span class="str">'editor'</span>,
+}
+
+<span class="cm">// user.schema.ts</span>
+<span class="dec">@Prop</span>({ type: String, enum: <span class="cl">Role</span>, <span class="kw">default</span>: <span class="cl">Role</span>.USER })
+role: <span class="cl">Role</span>;
+
+<span class="cm">// auth.service.ts — include role in JWT</span>
+<span class="fn">login</span>(user: <span class="cl">User</span>) {
+  <span class="kw">const</span> payload = {
+    sub: user._id,
+    email: user.email,
+    role: user.role,     <span class="cm">// always include!</span>
+  };
+  <span class="kw">return</span> { access_token: <span class="kw">this</span>.jwt.<span class="fn">sign</span>(payload) };
+}`,
+                ex: {
+                    title: 'Exercise 1 — seed users with different roles', body: 'Create three users — one with role:user, one with role:editor, one with role:admin. Log in as each and decode the JWT (jwt.io) to verify the role is in the payload.',
+                    steps: ['Define the Role enum in role.enum.ts', 'Add @Prop enum role to User schema with default Role.USER', 'Update login to include role in the JWT payload', 'Create a seed script or Postman requests to register 3 users', 'Log in as each and paste the token into jwt.io — confirm role field']
+                }
+            },
+
+            {
+                id: 2, level: 'beginner', title: '@Roles decorator and RolesGuard', sub: 'Custom metadata decorator, Reflector, canActivate',
+                concept: 'Create a @Roles() custom decorator that attaches required roles as metadata. The RolesGuard reads this metadata via Reflector and compares it against req.user.role from the JWT.',
+                code: `<span class="cm">// roles.decorator.ts</span>
+<span class="kw">export const</span> ROLES_KEY = <span class="str">'roles'</span>;
+<span class="kw">export const</span> <span class="fn">Roles</span> = (...roles: <span class="cl">Role</span>[]) =>
+  <span class="fn">SetMetadata</span>(<span class="cl">ROLES_KEY</span>, roles);
+
+<span class="cm">// roles.guard.ts</span>
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">RolesGuard</span> <span class="kw">implements</span> <span class="cl">CanActivate</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> reflector: <span class="cl">Reflector</span>) {}
+
+  <span class="fn">canActivate</span>(ctx: <span class="cl">ExecutionContext</span>) {
+    <span class="kw">const</span> required = <span class="kw">this</span>.reflector.<span class="fn">getAllAndOverride</span>&lt;<span class="cl">Role</span>[]&gt;(
+      <span class="cl">ROLES_KEY</span>, [ctx.<span class="fn">getHandler</span>(), ctx.<span class="fn">getClass</span>()]
+    );
+    <span class="kw">if</span> (!required) <span class="kw">return true</span>; <span class="cm">// no @Roles = public</span>
+    <span class="kw">const</span> { user } = ctx.<span class="fn">switchToHttp</span>().<span class="fn">getRequest</span>();
+    <span class="kw">return</span> required.<span class="fn">includes</span>(user?.role);
+  }
+}`,
+                ex: {
+                    title: 'Exercise 2 — protect admin routes with @Roles', body: 'Apply @Roles(Role.ADMIN) to DELETE /users/:id. Verify that a user-role JWT gets 403, while an admin-role JWT succeeds.',
+                    steps: ['Create roles.decorator.ts with @Roles using SetMetadata', 'Create roles.guard.ts using Reflector', 'Register RolesGuard globally with APP_GUARD provider', 'Apply @Roles(Role.ADMIN) to a delete route', 'Test with both user and admin JWTs — expect 403 and 200 respectively']
+                }
+            },
+
+            {
+                id: 3, level: 'beginner', title: 'Ownership guard: can this user do this?', sub: 'Resource ownership, user vs admin, PolicyGuard pattern',
+                concept: 'Roles alone are not enough: a user should be able to edit their own posts but not others\'. An ownership check compares req.user.id against the resource\'s ownerId. Combine with role: admins bypass ownership checks.',
+                code: `<span class="cm">// posts.guard.ts — ownership + admin override</span>
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">PostOwnerGuard</span> <span class="kw">implements</span> <span class="cl">CanActivate</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> postsService: <span class="cl">PostsService</span>) {}
+
+  <span class="kw">async</span> <span class="fn">canActivate</span>(ctx: <span class="cl">ExecutionContext</span>) {
+    <span class="kw">const</span> req = ctx.<span class="fn">switchToHttp</span>().<span class="fn">getRequest</span>();
+    <span class="kw">const</span> { user, params } = req;
+
+    <span class="kw">if</span> (user.role === <span class="cl">Role</span>.ADMIN) <span class="kw">return true</span>; <span class="cm">// admin bypass</span>
+
+    <span class="kw">const</span> post = <span class="kw">await this</span>.postsService.<span class="fn">findById</span>(params.id);
+    <span class="kw">if</span> (!post) <span class="kw">throw new</span> <span class="cl">NotFoundException</span>();
+
+    <span class="kw">return</span> post.authorId.<span class="fn">toString</span>() === user.id;
+  }
+}`,
+                ex: {
+                    title: 'Exercise 3 — ownership-aware PATCH /posts/:id', body: 'Protect PATCH /posts/:id so only the post author (or an admin) can edit it. Non-owners get 403; the author and admin get 200.',
+                    steps: ['Create PostOwnerGuard that loads the post from DB', 'Check post.authorId === req.user.id, or allow if role === admin', 'Apply @UseGuards(JwtAuthGuard, PostOwnerGuard) to PATCH', 'Test with 3 accounts: owner, other user, admin', 'Ensure admins always bypass the ownership check']
+                }
+            },
+
+            {
+                id: 4, level: 'intermediate', title: 'CASL: attribute-based permissions', sub: '@casl/ability, defineAbility, subject(), cannot()',
+                concept: 'CASL moves beyond role-based to attribute-based access control (ABAC). You define what each user CAN do on each subject. Abilities can be scoped by conditions — e.g., "read Post where tenantId = user.tenantId".',
+                code: `npm install @casl/ability @casl/mongoose
+
+<span class="cm">// casl-ability.factory.ts</span>
+<span class="kw">export type</span> <span class="cl">AppAbility</span> = <span class="cl">MongoAbility</span>&lt;[Action, Subjects]&gt;;
+
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">CaslAbilityFactory</span> {
+  <span class="fn">createForUser</span>(user: <span class="cl">User</span>) {
+    <span class="kw">const</span> { can, cannot, build } = <span class="kw">new</span> <span class="cl">AbilityBuilder</span>&lt;<span class="cl">AppAbility</span>&gt;(<span class="cl">createMongoAbility</span>);
+
+    <span class="kw">if</span> (user.role === <span class="cl">Role</span>.ADMIN) {
+      can(<span class="str">'manage'</span>, <span class="str">'all'</span>); <span class="cm">// admin: everything</span>
+    } <span class="kw">else</span> {
+      can(<span class="str">'read'</span>, <span class="str">'Post'</span>);
+      can([<span class="str">'update'</span>, <span class="str">'delete'</span>], <span class="str">'Post'</span>, { authorId: user._id });
+      cannot(<span class="str">'delete'</span>, <span class="str">'Post'</span>, { published: <span class="kw">true</span> }).<span class="fn">because</span>(<span class="str">'Cannot delete published posts'</span>);
+    }
+    <span class="kw">return</span> build();
+  }
+}`,
+                ex: {
+                    title: 'Exercise 4 — CASL ability factory', body: 'Build a CaslAbilityFactory that defines abilities for 3 roles. Create a PolicyGuard that calls the factory and checks abilities. Use it on PATCH and DELETE post routes.',
+                    steps: ['Install @casl/ability', 'Create CaslAbilityFactory with role-based ability definitions', 'Create a @CheckPolicies() decorator and IPolicyHandler interface', 'Build PoliciesGuard that creates abilities and evaluates handlers', 'Apply @CheckPolicies((ability) => ability.can("delete", Post)) to DELETE /posts/:id']
+                }
+            },
+
+            {
+                id: 5, level: 'intermediate', title: 'Permission-based access with DB-stored permissions', sub: 'Permissions collection, dynamic role-permission mapping',
+                concept: 'For flexible SaaS products, store permissions in the database rather than hardcoding them. A Role document contains an array of Permission strings. The guard fetches the user\'s role\'s permissions and checks membership.',
+                code: `<span class="cm">// permission.schema.ts</span>
+<span class="dec">@Schema</span>()
+<span class="kw">export class</span> <span class="cl">Permission</span> {
+  <span class="dec">@Prop</span>({ required: <span class="kw">true</span>, unique: <span class="kw">true</span> })
+  key: string; <span class="cm">// e.g. "posts:delete", "users:read"</span>
+}
+
+<span class="cm">// role.schema.ts</span>
+<span class="dec">@Schema</span>()
+<span class="kw">export class</span> <span class="cl">RoleDoc</span> {
+  <span class="dec">@Prop</span>({ required: <span class="kw">true</span>, unique: <span class="kw">true</span> })
+  name: string;
+
+  <span class="dec">@Prop</span>([{ type: <span class="cl">MongooseSchema</span>.Types.ObjectId, ref: <span class="str">'Permission'</span> }])
+  permissions: <span class="cl">Permission</span>[];
+}
+
+<span class="cm">// guard: load permissions and check</span>
+<span class="kw">const</span> role = <span class="kw">await</span> roleModel.<span class="fn">findOne</span>({ name: user.role }).<span class="fn">populate</span>(<span class="str">'permissions'</span>);
+<span class="kw">const</span> keys = role.permissions.<span class="fn">map</span>(p => p.key);
+<span class="kw">return</span> keys.<span class="fn">includes</span>(requiredPermission);`,
+                ex: {
+                    title: 'Exercise 5 — DB-driven permission management', body: 'Build a Roles and Permissions admin API. Create endpoints to assign permissions to roles at runtime, without code changes.',
+                    steps: ['Create Permission and RoleDoc schemas with a many-to-many relationship', 'Seed initial permissions: posts:read, posts:write, posts:delete, users:manage', 'Build admin endpoints: POST /roles/:id/permissions (assign), DELETE /roles/:id/permissions/:permId (revoke)', 'Build PermissionGuard that loads and caches the role\'s permissions', 'Cache permissions in Redis with a 60-second TTL for performance']
+                }
+            },
+
+            {
+                id: 6, level: 'intermediate', title: 'Field-level authorization with interceptors', sub: '@SerializeWith, field filtering by role, ClassSerializerInterceptor',
+                concept: 'Sometimes different roles should see different fields of the same object. A doctor sees all patient data; a receptionist sees only name and appointment. Use ClassSerializerInterceptor with role-aware @Expose() conditions or a custom field-filter interceptor.',
+                code: `<span class="cm">// user.entity.ts — expose fields conditionally</span>
+<span class="kw">export class</span> <span class="cl">UserResponse</span> {
+  name: string;
+  email: string;
+
+  <span class="dec">@Expose</span>({ groups: [<span class="str">'admin'</span>] })  <span class="cm">// only admin sees this</span>
+  internalNotes: string;
+
+  <span class="dec">@Exclude</span>()
+  password: string;
+}
+
+<span class="cm">// controller — pass role as group</span>
+<span class="dec">@Get</span>(<span class="str">':id'</span>)
+<span class="dec">@SerializeOptions</span>({ groups: [req.user.role] })
+<span class="fn">findOne</span>(<span class="dec">@Param</span>(<span class="str">'id'</span>) id: string) {
+  <span class="kw">return this</span>.usersService.<span class="fn">findById</span>(id);
+}`,
+                ex: {
+                    title: 'Exercise 6 — role-aware response serialization', body: 'Create a UserResponse DTO where admins see the full object (including internalNotes, loginHistory) but regular users only see public fields. Verify with both role JWTs.',
+                    steps: ['Install class-transformer and enable ClassSerializerInterceptor globally', 'Create UserResponse class with @Expose({ groups: [\'admin\'] }) on sensitive fields', 'Add @UseInterceptors(ClassSerializerInterceptor) and @SerializeOptions({ groups: [user.role] })', 'Test GET /users/:id as user (limited fields) and as admin (all fields)', 'Explore using a custom FieldFilterInterceptor as a more explicit alternative']
+                }
+            },
+
+            {
+                id: 7, level: 'advanced', title: 'Multi-role hierarchies and role inheritance', sub: 'Role hierarchy, implied permissions, recursive resolution',
+                concept: 'Enterprise systems need role hierarchies: SUPER_ADMIN inherits all ADMIN abilities, which inherit all EDITOR abilities. Implement this with a directed acyclic graph (DAG) of roles. When checking permissions, traverse ancestors to resolve the full permission set.',
+                code: `<span class="cm">// role-hierarchy.ts</span>
+<span class="kw">const</span> ROLE_HIERARCHY: <span class="cl">Record</span>&lt;string, string[]&gt; = {
+  SUPER_ADMIN: [<span class="str">'ADMIN'</span>],
+  ADMIN:       [<span class="str">'EDITOR'</span>],
+  EDITOR:      [<span class="str">'USER'</span>],
+  USER:        [],
+};
+
+<span class="fn">function</span> <span class="fn">resolveRoles</span>(role: string): string[] {
+  <span class="kw">const</span> parents = <span class="cl">ROLE_HIERARCHY</span>[role] || [];
+  <span class="kw">return</span> [role, ...parents.<span class="fn">flatMap</span>(<span class="fn">resolveRoles</span>)];
+}
+
+<span class="cm">// Check: resolveRoles('ADMIN') → ['ADMIN','EDITOR','USER']</span>
+<span class="cm">// Then: requiredRoles.some(r => resolvedRoles.includes(r))</span>`,
+                ex: {
+                    title: 'Exercise 7 — hierarchical role guard', body: 'Replace your flat RolesGuard with a hierarchical one. An ADMIN should automatically pass any guard requiring EDITOR or USER. Write unit tests to verify the hierarchy resolution.',
+                    steps: ['Define ROLE_HIERARCHY as a Record<Role, Role[]>', 'Write resolveRoles() that recursively flattens ancestors', 'Update RolesGuard to use resolvedRoles.some(r => required.includes(r))', 'Write unit tests for resolveRoles: expect SUPER_ADMIN resolves all roles', 'Test with Postman: admin JWTs should pass @Roles(Role.EDITOR) guards']
+                }
+            },
+
+            {
+                id: 8, level: 'advanced', title: 'Row-level security with MongoDB query filters', sub: 'Tenant/ownership scoped queries, monkey-patching Model',
+                concept: 'The most robust authorization pattern filters at the database layer: every query is automatically scoped to what the user is allowed to see. Use a middleware or base repository that injects ownership/tenant filters into every Mongoose query.',
+                code: `<span class="cm">// scoped-repository.ts — auto-inject user filter</span>
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">ScopedRepository</span>&lt;T&gt; {
+  <span class="kw">constructor</span>(
+    <span class="kw">private</span> model: <span class="cl">Model</span>&lt;T&gt;,
+    <span class="kw">private</span> user: <span class="cl">RequestUser</span>,
+  ) {}
+
+  <span class="kw">private</span> <span class="fn">scope</span>() {
+    <span class="kw">if</span> (user.role === <span class="cl">Role</span>.ADMIN) <span class="kw">return</span> {};
+    <span class="kw">return</span> { ownerId: <span class="kw">this</span>.user.id };  <span class="cm">// auto-scope</span>
+  }
+
+  <span class="fn">find</span>(filter = {}) {
+    <span class="kw">return this</span>.model.<span class="fn">find</span>({ ...<span class="kw">this</span>.<span class="fn">scope</span>(), ...filter });
+  }
+
+  <span class="fn">findById</span>(id: string) {
+    <span class="kw">return this</span>.model.<span class="fn">findOne</span>({ _id: id, ...<span class="kw">this</span>.<span class="fn">scope</span>() });
+  }
+}`,
+                ex: {
+                    title: 'Exercise 8 — row-level security via scoped queries', body: 'Build a ScopedPostRepository that automatically injects { ownerId: user.id } into all find queries for non-admin users. Admins see everything; users only see their own posts.',
+                    steps: ['Create ScopedRepository<T> base class with a scope() method', 'Inject REQUEST-scoped user into the repository using @Inject(REQUEST)', 'Override find() and findById() to merge scope() into all queries', 'Use the scoped repo in PostsService instead of the raw Model', 'Test: two users POST data, then GET /posts — each only sees their own items']
+                }
+            }
+        ];
+
+        const done = new Set(JSON.parse(localStorage.getItem('rbac-done') || '[]'));
+        function save() { try { localStorage.setItem('rbac-done', JSON.stringify([...done])) } catch (e) { } }
+        function updateStats() {
+            const n = done.size, t = L.length;
+            document.getElementById('s-done').textContent = n + ' / ' + t;
+            document.getElementById('s-pct').textContent = Math.round(n / t * 100) + '%';
+            document.getElementById('pbar').style.width = (n / t * 100) + '%';
+            document.getElementById('s-level').textContent = n < 3 ? 'Beginner' : n < 6 ? 'Intermediate' : 'Advanced';
+        }
+        function render(f) {
+            const c = document.getElementById('lessons'); c.innerHTML = '';
+            L.filter(l => f === 'all' || l.level === f).forEach(l => {
+                const d = done.has(l.id);
+                const el = document.createElement('div'); el.className = 'card';
+                el.innerHTML = `<div class="card-header" onclick="toggle(${l.id})">
+      <div class="num ${d ? 'done' : ''}" id="n${l.id}">${d ? '✓' : l.id}</div>
+      <div class="title-wrap">
+        <div class="lesson-title">${l.title}<span class="badge ${l.level}">${l.level}</span></div>
+        <div class="lesson-sub">${l.sub}</div>
+      </div>
+      <div class="chevron" id="ch${l.id}">›</div>
+    </div>
+    <div class="card-body" id="b${l.id}">
+      <div class="concept-box"><div class="section-label">Concept</div><p class="concept-text">${l.concept}</p></div>
+      <pre>${l.code}</pre>
+      <div class="ex-box">
+        <div class="ex-title">${l.ex.title}</div>
+        <p class="ex-body">${l.ex.body}</p>
+        ${l.ex.steps ? '<ul class="steps">' + l.ex.steps.map(s => `<li>${s}</li>`).join('') + '</ul>' : ''}
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-done ${d ? 'active' : ''}" id="mb${l.id}" onclick="mark(${l.id})">${d ? '✓ Completed' : 'Mark complete'}</button>
+      </div>
+    </div>`;
+                c.appendChild(el);
+            });
+        }
+        function toggle(id) { const b = document.getElementById('b' + id), ch = document.getElementById('ch' + id); const o = b.classList.toggle('open'); ch.style.transform = o ? 'rotate(90deg)' : ''; }
+        function mark(id) {
+            done.has(id) ? done.delete(id) : done.add(id); save(); updateStats();
+            const b = document.getElementById('mb' + id), n = document.getElementById('n' + id);
+            if (done.has(id)) { b.classList.add('active'); b.textContent = '✓ Completed'; n.classList.add('done'); n.textContent = '✓'; }
+            else { b.classList.remove('active'); b.textContent = 'Mark complete'; n.classList.remove('done'); n.textContent = id; }
+        }
+        function filter(f, el) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); el.classList.add('active'); render(f); }
+        render('all'); updateStats();
+    </script>
+</body>
+
+</html>

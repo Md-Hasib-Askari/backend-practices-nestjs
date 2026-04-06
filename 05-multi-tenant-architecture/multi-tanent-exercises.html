@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Multi-Tenant Architecture — NestJS</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #080e14;
+            --surface: #0e1820;
+            --surface2: #152130;
+            --border: rgba(100, 200, 255, 0.07);
+            --border2: rgba(100, 200, 255, 0.15);
+            --text: #d0e8f8;
+            --muted: #4a7090;
+            --accent: #38b4e8;
+            --accent-dim: rgba(56, 180, 232, 0.1);
+            --green: #4ecb8a;
+            --amber: #d4b843;
+            --coral: #d97060;
+            --font-mono: 'Fira Code', 'Cascadia Code', monospace;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 15px;
+            line-height: 1.65;
+            min-height: 100vh
+        }
+
+        header {
+            padding: 3rem 2rem 1.5rem;
+            max-width: 900px;
+            margin: 0 auto
+        }
+
+        .eyebrow {
+            font-size: 11px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 500;
+            margin-bottom: .6rem
+        }
+
+        h1 {
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 300;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: .4rem
+        }
+
+        h1 em {
+            color: var(--accent);
+            font-style: normal;
+            font-weight: 500
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        .wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 1.75rem
+        }
+
+        .stat {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 10px;
+            padding: .85rem 1rem
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 3px
+        }
+
+        .stat-val {
+            font-size: 21px;
+            font-weight: 500;
+            color: #fff
+        }
+
+        .progress-wrap {
+            background: var(--surface);
+            border-radius: 99px;
+            height: 3px;
+            margin-bottom: 1.75rem;
+            overflow: hidden
+        }
+
+        .progress-fill {
+            background: var(--accent);
+            height: 3px;
+            border-radius: 99px;
+            transition: width .4s ease;
+            width: 0%
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem
+        }
+
+        .tab {
+            padding: 5px 14px;
+            border-radius: 99px;
+            border: 0.5px solid var(--border2);
+            background: transparent;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--muted);
+            font-family: inherit;
+            transition: all .15s
+        }
+
+        .tab:hover {
+            background: var(--surface2);
+            color: var(--text)
+        }
+
+        .tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #080e14;
+            font-weight: 500
+        }
+
+        .card {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            transition: border-color .2s
+        }
+
+        .card:hover {
+            border-color: var(--border2)
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 1.1rem 1.25rem;
+            cursor: pointer;
+            user-select: none
+        }
+
+        .num {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--surface2);
+            border: 0.5px solid var(--border2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+            flex-shrink: 0;
+            margin-top: 1px;
+            transition: all .2s
+        }
+
+        .num.done {
+            background: rgba(56, 180, 232, .15);
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .title-wrap {
+            flex: 1
+        }
+
+        .lesson-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .lesson-sub {
+            font-size: 12.5px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-weight: 400;
+            letter-spacing: .04em
+        }
+
+        .badge.beginner {
+            background: rgba(78, 203, 138, .12);
+            color: #7ae0b0;
+            border: 0.5px solid rgba(78, 203, 138, .25)
+        }
+
+        .badge.intermediate {
+            background: rgba(212, 184, 67, .12);
+            color: #e0cc7a;
+            border: 0.5px solid rgba(212, 184, 67, .25)
+        }
+
+        .badge.advanced {
+            background: rgba(217, 112, 96, .12);
+            color: #e89080;
+            border: 0.5px solid rgba(217, 112, 96, .25)
+        }
+
+        .chevron {
+            font-size: 16px;
+            color: var(--muted);
+            transition: transform .2s;
+            flex-shrink: 0;
+            margin-top: 5px
+        }
+
+        .card-body {
+            display: none;
+            padding: 0 1.25rem 1.25rem;
+            border-top: 0.5px solid var(--border)
+        }
+
+        .card-body.open {
+            display: block
+        }
+
+        .concept-box {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: .9rem 1.1rem;
+            margin: 1rem 0
+        }
+
+        .section-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--muted);
+            font-weight: 500;
+            margin-bottom: 7px
+        }
+
+        .concept-text {
+            font-size: 13.5px;
+            color: #90b8d8;
+            line-height: 1.7
+        }
+
+        pre {
+            background: #040810;
+            border: 0.5px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            font-size: 12px;
+            line-height: 1.7;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            margin-bottom: 1rem;
+            color: #90b8d8;
+            white-space: pre
+        }
+
+        .kw {
+            color: #89ddff
+        }
+
+        .str {
+            color: #c3e88d
+        }
+
+        .cm {
+            color: #203040
+        }
+
+        .fn {
+            color: #82aaff
+        }
+
+        .cl {
+            color: #ffcb8b
+        }
+
+        .dec {
+            color: #c792ea
+        }
+
+        .nl {
+            color: #f78c6c
+        }
+
+        .ex-box {
+            border: 0.5px solid rgba(56, 180, 232, .25);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            background: rgba(56, 180, 232, .05);
+            margin-bottom: 1rem
+        }
+
+        .ex-title {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 7px
+        }
+
+        .ex-body {
+            font-size: 13px;
+            color: #607888;
+            line-height: 1.65;
+            margin-bottom: 7px
+        }
+
+        .steps {
+            padding-left: 1.1rem;
+            font-size: 12.5px;
+            color: #607888;
+            line-height: 1.9
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px
+        }
+
+        .btn {
+            padding: 6px 15px;
+            border-radius: 7px;
+            border: 0.5px solid var(--border2);
+            background: transparent;
+            color: var(--text);
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .15s
+        }
+
+        .btn:hover {
+            background: var(--surface2)
+        }
+
+        .btn-done {
+            border-color: rgba(56, 180, 232, .35);
+            color: var(--accent)
+        }
+
+        .btn-done:hover {
+            background: rgba(56, 180, 232, .1)
+        }
+
+        .btn-done.active {
+            background: var(--accent);
+            color: #080e14;
+            border-color: var(--accent);
+            font-weight: 500
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="eyebrow">Interactive curriculum · NestJS Series</div>
+        <h1><em>Multi-Tenant</em> Architecture</h1>
+        <p class="subtitle">Tenant isolation strategies, dynamic connections, per-tenant config — beginner to advanced
+        </p>
+    </header>
+    <div class="wrap">
+        <div class="stat-row">
+            <div class="stat">
+                <div class="stat-label">Completed</div>
+                <div class="stat-val" id="s-done">0 / 8</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Level</div>
+                <div class="stat-val" id="s-level">Beginner</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Progress</div>
+                <div class="stat-val" id="s-pct">0%</div>
+            </div>
+        </div>
+        <div class="progress-wrap">
+            <div class="progress-fill" id="pbar"></div>
+        </div>
+        <div class="tabs">
+            <button class="tab active" onclick="filter('all',this)">All</button>
+            <button class="tab" onclick="filter('beginner',this)">Beginner</button>
+            <button class="tab" onclick="filter('intermediate',this)">Intermediate</button>
+            <button class="tab" onclick="filter('advanced',this)">Advanced</button>
+        </div>
+        <div id="lessons"></div>
+    </div>
+    <script>
+        const L = [
+            {
+                id: 1, level: 'beginner', title: 'Multi-tenancy models compared', sub: 'Shared DB, schema-per-tenant, DB-per-tenant tradeoffs',
+                concept: 'Three main isolation models: (1) Shared database + tenantId column — simplest, cheapest, but weakest isolation. (2) Schema-per-tenant (Postgres) — moderate isolation, manageable. (3) Database-per-tenant — strongest isolation, most expensive, best for compliance. NestJS supports all three.',
+                code: `<span class="cm">// Model 1: shared DB with tenantId field (simplest)</span>
+<span class="dec">@Schema</span>()
+<span class="kw">export class</span> <span class="cl">Post</span> {
+  <span class="dec">@Prop</span>({ required: <span class="kw">true</span>, index: <span class="kw">true</span> })
+  tenantId: string;  <span class="cm">// every document carries this</span>
+
+  <span class="dec">@Prop</span>({ required: <span class="kw">true</span> })
+  title: string;
+}
+
+<span class="cm">// Model 3: DB-per-tenant (strongest isolation)</span>
+<span class="cm">// URI: mongodb://host/tenant_{tenantId}</span>
+<span class="cm">// Each tenant gets a fully separate database</span>`,
+                ex: {
+                    title: 'Exercise 1 — pick your isolation model', body: 'Read the tradeoffs above. Decide which model fits a hypothetical healthcare SaaS (compliance matters) vs a simple note-taking app (cost matters). Write a short decision doc.',
+                    steps: ['Consider: how sensitive is the tenant data?', 'Consider: how many tenants do you expect (10 vs 10,000)?', 'Consider: do tenants need their own backup schedule or custom indexes?', 'Shared DB wins for: high tenant count, cost sensitivity, simple data', 'DB-per-tenant wins for: compliance, enterprise clients, data sovereignty']
+                }
+            },
+
+            {
+                id: 2, level: 'beginner', title: 'Tenant identification: header, subdomain, JWT claim', sub: 'X-Tenant-ID header, subdomain parsing, tenant in JWT',
+                concept: 'Every request must identify the tenant. Three approaches: (1) X-Tenant-ID request header — simple for API clients. (2) Subdomain: acme.myapp.com → tenantId = "acme". (3) Tenant stored in the JWT payload — useful when users belong to exactly one tenant.',
+                code: `<span class="cm">// 1. Header-based (simplest for REST APIs)</span>
+<span class="kw">const</span> tenantId = req.<span class="fn">headers</span>[<span class="str">'x-tenant-id'</span>] <span class="kw">as</span> string;
+
+<span class="cm">// 2. Subdomain-based</span>
+<span class="kw">const</span> host = req.hostname; <span class="cm">// 'acme.myapp.com'</span>
+<span class="kw">const</span> tenantId = host.<span class="fn">split</span>(<span class="str">'.'</span>)[<span class="nl">0</span>]; <span class="cm">// 'acme'</span>
+
+<span class="cm">// 3. JWT claim-based</span>
+<span class="cm">// In JWT payload: { sub: userId, tenantId: 'acme' }</span>
+<span class="cm">// JwtStrategy.validate() returns { ...payload } → req.user.tenantId</span>
+
+<span class="cm">// Best practice: validate tenantId exists in DB</span>
+<span class="kw">const</span> tenant = <span class="kw">await</span> tenantsService.<span class="fn">findById</span>(tenantId);
+<span class="kw">if</span> (!tenant || !tenant.isActive) <span class="kw">throw new</span> <span class="cl">UnauthorizedException</span>();`,
+                ex: {
+                    title: 'Exercise 2 — tenant extraction middleware', body: 'Build a TenantMiddleware that reads X-Tenant-ID from the header, validates that the tenant exists in the Tenants collection, and attaches the tenant object to req.tenant.',
+                    steps: ['Create a Tenant schema with name, slug, isActive, plan fields', 'Build TenantMiddleware implementing NestMiddleware', 'Read and validate X-Tenant-ID header', 'If missing or invalid, throw UnauthorizedException', 'Attach the Tenant document to request.tenant', 'Register the middleware globally in AppModule']
+                }
+            },
+
+            {
+                id: 3, level: 'beginner', title: 'Scoping queries with tenantId', sub: 'BaseRepository, auto-inject tenantId, never trust the client',
+                concept: 'The cardinal rule: always filter by tenantId on every query. Never trust the client to pass it — derive it from the verified request context (middleware/JWT). A base repository class auto-injects the tenantId scope so developers can\'t accidentally forget it.',
+                code: `<span class="cm">// tenant-aware.repository.ts</span>
+<span class="dec">@Injectable</span>({ scope: <span class="cl">Scope</span>.REQUEST })
+<span class="kw">export class</span> <span class="cl">TenantAwareRepository</span>&lt;T&gt; {
+  <span class="kw">constructor</span>(
+    <span class="kw">private</span> model: <span class="cl">Model</span>&lt;T&gt;,
+    <span class="dec">@Inject</span>(<span class="cl">REQUEST</span>) <span class="kw">private</span> req: <span class="cl">Request</span>,
+  ) {}
+
+  <span class="kw">get</span> <span class="fn">tenantId</span>() { <span class="kw">return</span> (this.req <span class="kw">as any</span>).tenant._id; }
+
+  <span class="fn">find</span>(filter = {}) {
+    <span class="kw">return this</span>.model.<span class="fn">find</span>({ ...filter, tenantId: <span class="kw">this</span>.tenantId });
+  }
+
+  <span class="fn">create</span>(data: Partial&lt;T&gt;) {
+    <span class="kw">return new this</span>.model({ ...data, tenantId: <span class="kw">this</span>.tenantId }).<span class="fn">save</span>();
+  }
+}`,
+                ex: {
+                    title: 'Exercise 3 — tenant-scoped posts', body: 'Build a Posts feature using TenantAwareRepository. Verify complete tenant isolation: data created by tenant A must never appear in tenant B\'s responses.',
+                    steps: ['Implement TenantAwareRepository with REQUEST scope', 'Override find, findById, create, update, delete — all scope to tenantId', 'Create PostsService using the scoped repo instead of raw Model', 'Test: create posts as tenant-A, then GET /posts as tenant-B — expect empty array', 'Confirm that even direct Mongo queries show the tenantId field on all documents']
+                }
+            },
+
+            {
+                id: 4, level: 'intermediate', title: 'Database-per-tenant with dynamic connections', sub: 'Connection pool, mongoose createConnection, connection cache',
+                concept: 'For DB-per-tenant isolation, maintain a connection pool: a Map from tenantId to Mongoose Connection. Connections are created lazily on first request and cached. Enforce a max pool size and implement LRU eviction for memory management.',
+                code: `<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">TenantConnectionPool</span> {
+  <span class="kw">private</span> pool = <span class="kw">new</span> <span class="cl">Map</span>&lt;string, <span class="cl">Connection</span>&gt;();
+  <span class="kw">private readonly</span> MAX_POOL = <span class="nl">50</span>;
+
+  <span class="kw">async</span> <span class="fn">get</span>(tenantId: string): <span class="cl">Promise</span>&lt;<span class="cl">Connection</span>&gt; {
+    <span class="kw">if</span> (<span class="kw">this</span>.pool.<span class="fn">has</span>(tenantId)) {
+      <span class="kw">return this</span>.pool.<span class="fn">get</span>(tenantId);
+    }
+    <span class="kw">if</span> (<span class="kw">this</span>.pool.size >= <span class="kw">this</span>.MAX_POOL) {
+      <span class="kw">this</span>.<span class="fn">evictOldest</span>();
+    }
+    <span class="kw">const</span> uri = <span class="str">\`\${process.env.MONGO_BASE}/tenant_\${tenantId}\`</span>;
+    <span class="kw">const</span> conn = <span class="kw">await</span> <span class="fn">createConnection</span>(uri).<span class="fn">asPromise</span>();
+    <span class="kw">this</span>.pool.<span class="fn">set</span>(tenantId, conn);
+    <span class="kw">return</span> conn;
+  }
+
+  <span class="kw">private</span> <span class="fn">evictOldest</span>() {
+    <span class="kw">const</span> [key] = <span class="kw">this</span>.pool.keys();
+    <span class="kw">this</span>.pool.<span class="fn">get</span>(key).<span class="fn">close</span>();
+    <span class="kw">this</span>.pool.<span class="fn">delete</span>(key);
+  }
+}`,
+                ex: {
+                    title: 'Exercise 4 — dynamic connection pool', body: 'Build TenantConnectionPool. Create two separate MongoDB databases (tenant_alpha, tenant_beta). Verify that posting to each creates data only in the correct database.',
+                    steps: ['Implement TenantConnectionPool as a singleton Injectable', 'Lazy-create connections on first request per tenantId', 'Set MAX_POOL = 5 for testing, observe eviction', 'Use mongosh to verify data isolation: use tenant_alpha; db.posts.find()', 'Implement a /admin/connections endpoint to inspect the pool size']
+                }
+            },
+
+            {
+                id: 5, level: 'intermediate', title: 'Per-tenant configuration and feature flags', sub: 'Tenant plan, feature flags, config service per tenant',
+                concept: 'Enterprise SaaS tenants often have different plans (free/pro/enterprise) with different feature sets. Store per-tenant config in the Tenant document. A TenantConfigService resolves feature flags per request and is cached in Redis.',
+                code: `<span class="cm">// tenant.schema.ts</span>
+<span class="dec">@Schema</span>()
+<span class="kw">export class</span> <span class="cl">Tenant</span> {
+  <span class="dec">@Prop</span>({ required: <span class="kw">true</span>, unique: <span class="kw">true</span> }) slug: string;
+  <span class="dec">@Prop</span>({ enum: [<span class="str">'free'</span>,<span class="str">'pro'</span>,<span class="str">'enterprise'</span>], <span class="kw">default</span>: <span class="str">'free'</span> }) plan: string;
+  <span class="dec">@Prop</span>({ type: <span class="cl">Object</span>, <span class="kw">default</span>: {} })
+  featureFlags: <span class="cl">Record</span>&lt;string, boolean&gt;;
+  <span class="cm">// e.g. { analytics: true, customDomain: false, sso: true }</span>
+}
+
+<span class="cm">// Feature gate decorator</span>
+<span class="kw">export const</span> <span class="fn">RequireFeature</span> = (feature: string) =>
+  <span class="fn">SetMetadata</span>(<span class="str">'feature'</span>, feature);
+
+<span class="cm">// Guard checks tenant.featureFlags[feature]</span>
+<span class="kw">const</span> hasFeature = tenant.featureFlags[feature] === <span class="kw">true</span>;`,
+                ex: {
+                    title: 'Exercise 5 — plan-gated endpoints', body: 'Add a plan field and featureFlags to your Tenant schema. Build a @RequireFeature("analytics") decorator and FeatureFlagGuard. Gate GET /analytics behind this decorator.',
+                    steps: ['Add plan and featureFlags to Tenant schema', 'Build FeatureFlagGuard that checks req.tenant.featureFlags[requiredFeature]', 'Create @RequireFeature("analytics") metadata decorator', 'Apply @UseGuards(JwtAuthGuard, FeatureFlagGuard) and @RequireFeature("analytics") to GET /analytics', 'Test with two tenants: one with analytics: true, one with analytics: false']
+                }
+            },
+
+            {
+                id: 6, level: 'intermediate', title: 'Tenant onboarding and provisioning', sub: 'Tenant registration, DB init, seed data, async provisioning',
+                concept: 'Onboarding a new tenant requires: creating the Tenant record, provisioning their database or namespace, seeding default data (roles, settings), and potentially sending a welcome email. This should be an atomic, idempotent process — retryable if it fails midway.',
+                code: `<span class="cm">// tenant-provisioner.service.ts</span>
+<span class="kw">async</span> <span class="fn">provisionTenant</span>(dto: <span class="cl">CreateTenantDto</span>) {
+  <span class="cm">// 1. Create tenant record (idempotent via upsert)</span>
+  <span class="kw">const</span> tenant = <span class="kw">await this</span>.tenantModel.<span class="fn">findOneAndUpdate</span>(
+    { slug: dto.slug },
+    { $setOnInsert: dto },
+    { upsert: <span class="kw">true</span>, <span class="kw">new</span>: <span class="kw">true</span> }
+  );
+
+  <span class="cm">// 2. Provision database</span>
+  <span class="kw">await this</span>.connectionPool.<span class="fn">get</span>(tenant._id);
+
+  <span class="cm">// 3. Seed default roles</span>
+  <span class="kw">await this</span>.<span class="fn">seedDefaultData</span>(tenant._id);
+
+  <span class="cm">// 4. Mark provisioning complete</span>
+  <span class="kw">await</span> tenant.<span class="fn">updateOne</span>({ isProvisioned: <span class="kw">true</span> });
+
+  <span class="kw">return</span> tenant;
+}`,
+                ex: {
+                    title: 'Exercise 6 — tenant provisioning service', body: 'Build POST /tenants (admin-only) that provisions a new tenant: creates the record, initializes their DB, seeds default data, and returns the tenant slug and API key.',
+                    steps: ['Create TenantProvisionerService with provisionTenant()', 'Use findOneAndUpdate with upsert: true for idempotency', 'Seed default roles (admin, user) and settings into the tenant\'s DB', 'Generate a unique API key for the tenant (use crypto.randomUUID())', 'Add isProvisioned and provisionedAt fields to track status', 'Test: provision, then deprovision and re-provision (should be idempotent)']
+                }
+            },
+
+            {
+                id: 7, level: 'advanced', title: 'Cross-tenant operations for super admins', sub: 'Super admin bypass, cross-tenant queries, audit trail',
+                concept: 'Super admins need to view and manage data across all tenants. They must bypass tenant isolation while every action is audit-logged. Implement a SUPER_ADMIN role that can pass a ?tenantId= query param to operate on any tenant.',
+                code: `<span class="cm">// super-admin.guard.ts</span>
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="cl">SuperAdminGuard</span> <span class="kw">implements</span> <span class="cl">CanActivate</span> {
+  <span class="fn">canActivate</span>(ctx: <span class="cl">ExecutionContext</span>) {
+    <span class="kw">const</span> user = ctx.<span class="fn">switchToHttp</span>().<span class="fn">getRequest</span>().user;
+    <span class="kw">return</span> user?.role === <span class="str">'super_admin'</span>;
+  }
+}
+
+<span class="cm">// Cross-tenant query: bypass scope</span>
+<span class="dec">@Get</span>(<span class="str">'admin/tenants/:tenantId/users'</span>)
+<span class="dec">@UseGuards</span>(<span class="cl">JwtAuthGuard</span>, <span class="cl">SuperAdminGuard</span>)
+<span class="kw">async</span> <span class="fn">listTenantUsers</span>(<span class="dec">@Param</span>(<span class="str">'tenantId'</span>) tenantId: string) {
+  <span class="kw">const</span> conn = <span class="kw">await this</span>.pool.<span class="fn">get</span>(tenantId);
+  <span class="kw">const</span> UserModel = conn.<span class="fn">model</span>(<span class="str">'User'</span>, UserSchema);
+  <span class="kw">await this</span>.audit.<span class="fn">log</span>({ actor: req.user, action: <span class="str">'cross-tenant-read'</span>, tenantId });
+  <span class="kw">return</span> UserModel.<span class="fn">find</span>({});
+}`,
+                ex: {
+                    title: 'Exercise 7 — super admin dashboard API', body: 'Build a set of super-admin endpoints under /admin that bypass tenant isolation and can query any tenant\'s data. All actions must be audit-logged.',
+                    steps: ['Add SUPER_ADMIN to the Role enum', 'Create SuperAdminGuard that strictly checks for this role', 'Build GET /admin/tenants (list all tenants with stats)', 'Build GET /admin/tenants/:id/users (cross-tenant user list)', 'Log every super-admin action: actor, action, tenantId, timestamp, IP']
+                }
+            },
+
+            {
+                id: 8, level: 'advanced', title: 'Tenant data export, backup, and deletion (GDPR)', sub: 'Data portability, tenant offboarding, right to erasure',
+                concept: 'Production multi-tenant SaaS must support GDPR compliance: tenant data export (portability), account deletion (right to erasure), and retention policies. These are async operations processed via a job queue.',
+                code: `<span class="cm">// tenant-offboarding.service.ts</span>
+<span class="kw">async</span> <span class="fn">exportTenantData</span>(tenantId: string) {
+  <span class="kw">const</span> conn = <span class="kw">await this</span>.pool.<span class="fn">get</span>(tenantId);
+  <span class="kw">const</span> collections = <span class="kw">await</span> conn.<span class="fn">db</span>.<span class="fn">listCollections</span>().<span class="fn">toArray</span>();
+  <span class="kw">const</span> data: <span class="cl">Record</span>&lt;string, <span class="kw">any</span>[]&gt; = {};
+
+  <span class="kw">for</span> (<span class="kw">const</span> col <span class="kw">of</span> collections) {
+    data[col.name] = <span class="kw">await</span> conn.<span class="fn">db</span>.<span class="fn">collection</span>(col.name).<span class="fn">find</span>({}).<span class="fn">toArray</span>();
+  }
+
+  <span class="kw">const</span> json = <span class="cl">JSON</span>.<span class="fn">stringify</span>(data);
+  <span class="kw">return this</span>.storage.<span class="fn">upload</span>(<span class="str">\`exports/\${tenantId}.json\`</span>, json);
+}
+
+<span class="kw">async</span> <span class="fn">deleteTenant</span>(tenantId: string) {
+  <span class="kw">const</span> conn = <span class="kw">await this</span>.pool.<span class="fn">get</span>(tenantId);
+  <span class="kw">await</span> conn.<span class="fn">db</span>.<span class="fn">dropDatabase</span>();  <span class="cm">// full wipe</span>
+  <span class="kw">await this</span>.tenantModel.<span class="fn">deleteOne</span>({ _id: tenantId });
+  <span class="kw">await this</span>.<span class="fn">audit</span>.<span class="fn">log</span>({ action: <span class="str">'tenant-deleted'</span>, tenantId });
+}`,
+                ex: {
+                    title: 'Exercise 8 — GDPR-compliant tenant lifecycle', body: 'Build POST /admin/tenants/:id/export (async data export to file) and DELETE /admin/tenants/:id (full offboarding). Use a Bull queue for the async export job.',
+                    steps: ['Install @nestjs/bull and bull for job queue support', 'Create a TenantExportJob that iterates all collections and streams to a JSON file', 'POST /admin/tenants/:id/export: queue the job, return 202 Accepted', 'DELETE /admin/tenants/:id: drop the DB, delete the Tenant doc, log the action', 'GET /admin/tenants/:id/export/status: check job completion status']
+                }
+            }
+        ];
+
+        const done = new Set(JSON.parse(localStorage.getItem('multitenant-done') || '[]'));
+        function save() { try { localStorage.setItem('multitenant-done', JSON.stringify([...done])) } catch (e) { } }
+        function updateStats() {
+            const n = done.size, t = L.length;
+            document.getElementById('s-done').textContent = n + ' / ' + t;
+            document.getElementById('s-pct').textContent = Math.round(n / t * 100) + '%';
+            document.getElementById('pbar').style.width = (n / t * 100) + '%';
+            document.getElementById('s-level').textContent = n < 3 ? 'Beginner' : n < 6 ? 'Intermediate' : 'Advanced';
+        }
+        function render(f) {
+            const c = document.getElementById('lessons'); c.innerHTML = '';
+            L.filter(l => f === 'all' || l.level === f).forEach(l => {
+                const d = done.has(l.id);
+                const el = document.createElement('div'); el.className = 'card';
+                el.innerHTML = `<div class="card-header" onclick="toggle(${l.id})">
+      <div class="num ${d ? 'done' : ''}" id="n${l.id}">${d ? '✓' : l.id}</div>
+      <div class="title-wrap">
+        <div class="lesson-title">${l.title}<span class="badge ${l.level}">${l.level}</span></div>
+        <div class="lesson-sub">${l.sub}</div>
+      </div>
+      <div class="chevron" id="ch${l.id}">›</div>
+    </div>
+    <div class="card-body" id="b${l.id}">
+      <div class="concept-box"><div class="section-label">Concept</div><p class="concept-text">${l.concept}</p></div>
+      <pre>${l.code}</pre>
+      <div class="ex-box">
+        <div class="ex-title">${l.ex.title}</div>
+        <p class="ex-body">${l.ex.body}</p>
+        ${l.ex.steps ? '<ul class="steps">' + l.ex.steps.map(s => `<li>${s}</li>`).join('') + '</ul>' : ''}
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-done ${d ? 'active' : ''}" id="mb${l.id}" onclick="mark(${l.id})">${d ? '✓ Completed' : 'Mark complete'}</button>
+      </div>
+    </div>`;
+                c.appendChild(el);
+            });
+        }
+        function toggle(id) { const b = document.getElementById('b' + id), ch = document.getElementById('ch' + id); const o = b.classList.toggle('open'); ch.style.transform = o ? 'rotate(90deg)' : ''; }
+        function mark(id) {
+            done.has(id) ? done.delete(id) : done.add(id); save(); updateStats();
+            const b = document.getElementById('mb' + id), n = document.getElementById('n' + id);
+            if (done.has(id)) { b.classList.add('active'); b.textContent = '✓ Completed'; n.classList.add('done'); n.textContent = '✓'; }
+            else { b.classList.remove('active'); b.textContent = 'Mark complete'; n.classList.remove('done'); n.textContent = id; }
+        }
+        function filter(f, el) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); el.classList.add('active'); render(f); }
+        render('all'); updateStats();
+    </script>
+</body>
+
+</html>
