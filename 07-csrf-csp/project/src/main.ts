@@ -1,9 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { json } from 'express';
 import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(
+    json({
+      type: ['application/csp-report', 'application/reports+json'],
+    }),
+  );
 
   app.use(
     // helmet(),

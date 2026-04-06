@@ -41,8 +41,15 @@ export class AppController {
 
   @Post('csp-report')
   @HttpCode(204)
-  cspReport(@Body() body: any) {
-    this.logger.warn('CSP violation', body['csp-report']);
+  cspReport(@Body() body?: Record<string, unknown>) {
+    const report = body?.['csp-report'] ?? body;
+
+    if (!report) {
+      this.logger.warn('CSP violation report received without a request body');
+      return;
+    }
+
+    this.logger.warn(`CSP violation: ${JSON.stringify(report)}`);
     // alert to Slack / store in DB for analysis
   }
 }
