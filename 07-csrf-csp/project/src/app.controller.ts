@@ -1,9 +1,12 @@
-import { Controller, Get, Header } from '@nestjs/common';
+import { Body, Controller, Get, Header, HttpCode, Logger, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly logger: Logger,
+  ) { }
 
   @Get()
   getHello(): string {
@@ -34,5 +37,12 @@ export class AppController {
       </body>
       </html>
     `;
+  }
+
+  @Post('csp-report')
+  @HttpCode(204)
+  cspReport(@Body() body: any) {
+    this.logger.warn('CSP violation', body['csp-report']);
+    // alert to Slack / store in DB for analysis
   }
 }

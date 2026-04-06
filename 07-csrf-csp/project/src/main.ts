@@ -9,6 +9,8 @@ async function bootstrap() {
     // helmet(),
     helmet({
       contentSecurityPolicy: {
+        useDefaults: true,
+        reportOnly: false, // Set to true to only report violations without enforcing the policy
         directives: {
           defaultSrc: ["'self'"],
           scriptSrc: ["'self'"],
@@ -19,6 +21,7 @@ async function bootstrap() {
           baseUri: ["'self'"],
           frameAncestors: ["'none'"],
           formAction: ["'self'"],
+          reportUri: '/csp-report', // Endpoint to receive violation reports
         },
       },
     }),
