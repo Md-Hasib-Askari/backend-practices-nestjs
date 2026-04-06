@@ -8,7 +8,12 @@ async function bootstrap() {
 
   app.use(
     json({
-      type: ['application/csp-report', 'application/reports+json'],
+      type: [
+        'application/json',
+        'application/csp-report',
+        'application/reports+json',
+        'application/*+json',
+      ],
     }),
   );
 
@@ -17,7 +22,7 @@ async function bootstrap() {
     helmet({
       contentSecurityPolicy: {
         useDefaults: true,
-        reportOnly: false, // Set to true to only report violations without enforcing the policy
+        reportOnly: true, // Report violations without blocking resources
         directives: {
           defaultSrc: ["'self'"],
           scriptSrc: ["'self'"],

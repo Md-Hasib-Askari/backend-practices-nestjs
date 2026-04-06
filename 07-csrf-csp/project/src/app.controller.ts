@@ -25,14 +25,21 @@ export class AppController {
         <title>CSP Test</title>
       </head>
       <body>
-        <h1>CSP Inline Script Test</h1>
+        <h1>CSP Report-Only Test</h1>
         <p>
-          Open browser DevTools console. The inline script below should be blocked by
-          Content-Security-Policy.
+          This page intentionally violates your CSP (inline script + external image).
+          In report-only mode, these are not blocked, but violations are sent to /csp-report.
         </p>
+
+        <img
+          src="https://example.com/favicon.ico"
+          alt="External image used to trigger img-src violation"
+          width="120"
+          height="120"
+        />
+
         <script>
-          console.log('If you see this, CSP is not strict enough.');
-          alert('Inline script executed');
+          console.log('Inline script executed in report-only mode.');
         </script>
       </body>
       </html>
@@ -42,7 +49,11 @@ export class AppController {
   @Post('csp-report')
   @HttpCode(204)
   cspReport(@Body() body?: Record<string, unknown>) {
+    console.log('CSP report body:', body);
+
     const report = body?.['csp-report'] ?? body;
+
+    this.logger.debug(`Received CSP violation report: ${JSON.stringify(report)}`);
 
     if (!report) {
       this.logger.warn('CSP violation report received without a request body');
