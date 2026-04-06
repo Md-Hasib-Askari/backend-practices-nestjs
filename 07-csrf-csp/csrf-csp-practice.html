@@ -195,7 +195,7 @@ app.<span class="fn">use</span>(helmet({
   },
 }));`,
 ex:{title:'Exercise 4 — configure and test CSP with helmet',body:'Add helmet with a strict CSP to your NestJS app. Verify the header appears in responses. Then deliberately break it (add an inline script to a served HTML page) and watch the browser block it.',
-steps:['Install helmet and add ap p.use (helmet({...})) in main.ts','Start the app and open DevTools → Network — click any response and check for content-security-policy header','Serve a test HTML page with an inline <script>alert(1)<\/        script >','Open the page — observe the browser blocks the script and logs a CSP violation','Open DevTools → Console to see the violation message']}},
+steps:['Install helmet and add ap p.use (helmet({...})) in main.ts','Start the app and open DevTools → Network — click any response and check for content-security-policy header','Serve a test HTML page with an inline <script>alert(1)<\/script >','Open the page — observe the browser blocks the script and logs a CSP violation','Open DevTools → Console to see the violation message']}},
 
 {id:5,level:'intermediate',title:'CSP violation reporting',sub:'report-to, report-uri, CSP report endpoint, monitoring',
 concept:'CSP violations are reported by browsers to a specified endpoint. Collect these to discover: accidental policy breakage, third-party resource changes, and real XSS attack attempts. Use report-only mode first to audit without breaking anything.',
@@ -310,6 +310,14 @@ steps:['Combine: helmet (full config) + csrf-csrf + CORS + httpOnly cookies','Ru
 
 const done=new Set(JSON.parse(localStorage.getItem('csrf-csp-done')||'[]'));
 function save(){try{localStorage.setItem('csrf-csp-done',JSON.stringify([...done]))}catch(e){}}
+function esc(s){
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
 function updateStats(){
   const n=done.size,t=L.length;
   document.getElementById('s-done').textContent=n+' / '+t;
@@ -338,7 +346,7 @@ function render(f){
       <div class="ex-box">
         <div class="ex-title">${l.ex.title}</div>
         <p class="ex-body">${l.ex.body}</p>
-        ${l.ex.steps?'<ul class="steps">'+l.ex.steps.map(s=>`<li>${s}</li>`).join('')+'</ul>':''}
+        ${l.ex.steps?'<ul class="steps">'+l.ex.steps.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>':''}
       </div>
       <div class="btn-row">
         <button class="btn btn-done ${d?'active':''}" id="mb${l.id}" onclick="mark(${l.id})">${d?'✓ Completed':'Mark complete'}</button>
