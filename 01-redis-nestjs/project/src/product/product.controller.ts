@@ -1,10 +1,15 @@
-import { Controller, Get, Post, Param, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Param, UseInterceptors, Body, Put, Delete } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) { }
+
+  @Post()
+  addProduct(@Body() body: any) {
+    return this.productService.addProduct(body);
+  }
 
   @Get(':id')
   getProduct(@Param('id') id: string) {
@@ -28,6 +33,16 @@ export class ProductController {
   @CacheTTL(60_000) // Cache this route for 60 seconds (ms)
   findOne(@Param('id') id: string) {
     return this.productService.findOne(+id);
+  }
+
+  @Put(':id')
+  updateProduct(@Param('id') id: string, @Body() body: any) {
+    return this.productService.update(+id, body);
+  }
+
+  @Delete(':id')
+  deleteProduct(@Param('id') id: string) {
+    return this.productService.remove(+id);
   }
 
 }
