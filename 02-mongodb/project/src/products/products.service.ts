@@ -5,22 +5,26 @@ import { UpdateProductDto } from './dto/update-product.dto';
 @Injectable()
 export class ProductsService {
   create(createProductDto: CreateProductDto) {
-    return 'This action adds a new product';
+    // return this.productModel.create(createProductDto);
+    return [];
   }
 
   findAll() {
-    return `This action returns all products`;
+    // return this.productModel.find().exec();
+    return [];
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  findOne(id: string) {
+    // return this.productModel.findOne({ _id: id }).exec();
+    return null;
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  update(id: string, updateProductDto: UpdateProductDto) {
+  // return this.productModel.findByIdAndUpdate(id, updateProductDto, { new: true }).exec();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  remove(id: string) {
+    // return this.productModel.deleteOne({ _id: id }).exec();
+    return null;
   }
 }
