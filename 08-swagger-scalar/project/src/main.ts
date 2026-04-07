@@ -11,8 +11,8 @@ async function bootstrap() {
     .setTitle('Swagger Example')
     .setDescription('API documentation for Swagger example')
     .setVersion('1.0')
-    .addServer('http://localhost:5000', 'Local server')
     .addServer('http://localhost:3000', 'Local server')
+    .addServer('http://localhost:5000', 'Local server')
     .addBearerAuth()
     .build();
 
