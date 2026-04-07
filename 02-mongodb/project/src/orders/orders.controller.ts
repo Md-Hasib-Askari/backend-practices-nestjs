@@ -19,16 +19,21 @@ export class OrdersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(+id);
+    return this.ordersService.findOne(id);
+  }
+
+  @Get('user/:userId')
+  findByUser(@Param('userId') userId: string) {
+    return this.ordersService.findByUser(userId);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.ordersService.update(+id, updateOrderDto);
+    return this.ordersService.update(id, updateOrderDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.ordersService.remove(+id);
+    return this.ordersService.remove(id);
   }
 }
