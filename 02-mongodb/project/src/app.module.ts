@@ -12,7 +12,7 @@ import { UserModule } from './user/user.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI') ?? 'mongodb://172.18.0.3:27017/nest-practice',
+        uri: configService.get<string>('MONGODB_URI') ?? 'mongodb://root:root@localhost:27017/nest-practice?authSource=admin',
       }),
     }),
     ProductsModule,
