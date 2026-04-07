@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Swagger & Scalar Docs in NestJS — Beginner to Advanced</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #0a0c10;
+            --surface: #111520;
+            --surface2: #181e2e;
+            --border: rgba(120, 160, 255, 0.08);
+            --border2: rgba(120, 160, 255, 0.16);
+            --text: #d8e4f8;
+            --muted: #4a5880;
+            --accent: #6899f8;
+            --accent-dim: rgba(104, 153, 248, 0.1);
+            --green: #4ecb8a;
+            --amber: #e0b84a;
+            --coral: #e07868;
+            --teal: #38d4c8;
+            --font-mono: 'Fira Code', 'Cascadia Code', monospace;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', system-ui, sans-serif;
+            font-size: 15px;
+            line-height: 1.65;
+            min-height: 100vh
+        }
+
+        header {
+            padding: 3rem 2rem 1.5rem;
+            max-width: 900px;
+            margin: 0 auto
+        }
+
+        .eyebrow {
+            font-size: 11px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 500;
+            margin-bottom: .6rem
+        }
+
+        h1 {
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 300;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: .4rem
+        }
+
+        h1 em {
+            color: var(--accent);
+            font-style: normal;
+            font-weight: 500
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        .route-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: .9rem
+        }
+
+        .route-link {
+            font-size: 11px;
+            letter-spacing: .03em;
+            padding: 4px 10px;
+            border-radius: 99px;
+            border: 0.5px solid var(--border2);
+            color: var(--muted);
+            text-decoration: none;
+            transition: all .15s
+        }
+
+        .route-link:hover {
+            background: var(--surface2);
+            color: var(--text)
+        }
+
+        .wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 1.75rem
+        }
+
+        .stat {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 10px;
+            padding: .85rem 1rem
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 3px
+        }
+
+        .stat-val {
+            font-size: 21px;
+            font-weight: 500;
+            color: #fff
+        }
+
+        .progress-wrap {
+            background: var(--surface);
+            border-radius: 99px;
+            height: 3px;
+            margin-bottom: 1.75rem;
+            overflow: hidden
+        }
+
+        .progress-fill {
+            background: var(--accent);
+            height: 3px;
+            border-radius: 99px;
+            transition: width .4s ease;
+            width: 0%
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem
+        }
+
+        .tab {
+            padding: 5px 14px;
+            border-radius: 99px;
+            border: 0.5px solid var(--border2);
+            background: transparent;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--muted);
+            font-family: inherit;
+            transition: all .15s
+        }
+
+        .tab:hover {
+            background: var(--surface2);
+            color: var(--text)
+        }
+
+        .tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #0a0c10;
+            font-weight: 500
+        }
+
+        .card {
+            background: var(--surface);
+            border: 0.5px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            transition: border-color .2s
+        }
+
+        .card:hover {
+            border-color: var(--border2)
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 1.1rem 1.25rem;
+            cursor: pointer;
+            user-select: none
+        }
+
+        .num {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--surface2);
+            border: 0.5px solid var(--border2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+            flex-shrink: 0;
+            margin-top: 1px;
+            transition: all .2s
+        }
+
+        .num.done {
+            background: rgba(104, 153, 248, .15);
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .title-wrap {
+            flex: 1
+        }
+
+        .lesson-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .lesson-sub {
+            font-size: 12.5px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .badge {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-weight: 400;
+            letter-spacing: .04em
+        }
+
+        .badge.beginner {
+            background: rgba(78, 203, 138, .12);
+            color: #7ae0b0;
+            border: 0.5px solid rgba(78, 203, 138, .25)
+        }
+
+        .badge.intermediate {
+            background: rgba(224, 184, 74, .12);
+            color: #e8cc78;
+            border: 0.5px solid rgba(224, 184, 74, .25)
+        }
+
+        .badge.advanced {
+            background: rgba(224, 120, 104, .12);
+            color: #e89888;
+            border: 0.5px solid rgba(224, 120, 104, .25)
+        }
+
+        .chevron {
+            font-size: 16px;
+            color: var(--muted);
+            transition: transform .2s;
+            flex-shrink: 0;
+            margin-top: 5px
+        }
+
+        .card-body {
+            display: none;
+            padding: 0 1.25rem 1.25rem;
+            border-top: 0.5px solid var(--border)
+        }
+
+        .card-body.open {
+            display: block
+        }
+
+        .concept-box {
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: .9rem 1.1rem;
+            margin: 1rem 0
+        }
+
+        .section-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--muted);
+            font-weight: 500;
+            margin-bottom: 7px
+        }
+
+        .concept-text {
+            font-size: 13.5px;
+            color: #90a8d8;
+            line-height: 1.7
+        }
+
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: .75rem 0
+        }
+
+        .compare-card {
+            background: var(--surface);
+            border: 0.5px solid var(--border2);
+            border-radius: 7px;
+            padding: .8rem 1rem
+        }
+
+        .compare-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #fff;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .compare-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0
+        }
+
+        .compare-items {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.8;
+            list-style: none
+        }
+
+        .compare-items li::before {
+            content: '· ';
+            color: var(--accent)
+        }
+
+        .tip-box {
+            background: rgba(56, 212, 200, .06);
+            border: 0.5px solid rgba(56, 212, 200, .2);
+            border-radius: 8px;
+            padding: .75rem 1rem;
+            margin: .75rem 0;
+            font-size: 12.5px;
+            color: #70b8b4;
+            line-height: 1.6
+        }
+
+        .tip-box strong {
+            color: var(--teal);
+            font-weight: 500
+        }
+
+        pre {
+            background: #060810;
+            border: 0.5px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            font-size: 12px;
+            line-height: 1.7;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            margin-bottom: 1rem;
+            color: #90a8d8;
+            white-space: pre
+        }
+
+        .kw {
+            color: #89ddff
+        }
+
+        .str {
+            color: #c3e88d
+        }
+
+        .cm {
+            color: #1e2840
+        }
+
+        .fn {
+            color: #82aaff
+        }
+
+        .cl {
+            color: #ffcb8b
+        }
+
+        .dec {
+            color: #c792ea
+        }
+
+        .nl {
+            color: #f78c6c
+        }
+
+        .prop {
+            color: #80cbc4
+        }
+
+        .ex-box {
+            border: 0.5px solid rgba(104, 153, 248, .22);
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            background: rgba(104, 153, 248, .04);
+            margin-bottom: 1rem
+        }
+
+        .ex-title {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 7px
+        }
+
+        .ex-body {
+            font-size: 13px;
+            color: #506080;
+            line-height: 1.65;
+            margin-bottom: 7px
+        }
+
+        .steps {
+            padding-left: 1.1rem;
+            font-size: 12.5px;
+            color: #506080;
+            line-height: 1.9
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px
+        }
+
+        .btn {
+            padding: 6px 15px;
+            border-radius: 7px;
+            border: 0.5px solid var(--border2);
+            background: transparent;
+            color: var(--text);
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .15s
+        }
+
+        .btn:hover {
+            background: var(--surface2)
+        }
+
+        .btn-done {
+            border-color: rgba(104, 153, 248, .35);
+            color: var(--accent)
+        }
+
+        .btn-done:hover {
+            background: rgba(104, 153, 248, .1)
+        }
+
+        .btn-done.active {
+            background: var(--accent);
+            color: #0a0c10;
+            border-color: var(--accent);
+            font-weight: 500
+        }
+
+        @media(max-width:600px) {
+            .stat-row {
+                grid-template-columns: 1fr 1fr
+            }
+
+            ;
+
+            .compare-grid {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="eyebrow">Interactive curriculum · NestJS Series</div>
+        <h1><em>Swagger & Scalar</em> API Docs</h1>
+        <p class="subtitle">OpenAPI setup, decorators, schemas, auth, Scalar UI, and CI doc generation — beginner to
+            advanced</p>
+        <nav class="route-nav" aria-label="Practice routes">
+            <a class="route-link" href="../nestjs-reference.html">Reference</a>
+            <a class="route-link" href="../01-redis-nestjs/redis-guided-exercises.html">Redis</a>
+            <a class="route-link" href="../02-mongodb/mongodb-exercises.html">MongoDB</a>
+            <a class="route-link" href="../03-authentication-nestjs/authentication-exercises.html">Auth</a>
+            <a class="route-link" href="../04-role-based-auth-nestjs/rbac-exercises.html">RBAC</a>
+            <a class="route-link" href="../05-multi-tenant-architecture/multi-tanent-exercises.html">Multi-Tenant</a>
+            <a class="route-link" href="../06-rate-limit-nestjs/rate-limiting-exercises.html">Rate Limit</a>
+            <a class="route-link" href="../07-csrf-csp/csrf-csp-practice.html">CSRF/CSP</a>
+            <a class="route-link" href="../08-swagger-scalar/swagger-scalar-exercises.html">Swagger/Scalar</a>
+        </nav>
+    </header>
+    <div class="wrap">
+        <div class="stat-row">
+            <div class="stat">
+                <div class="stat-label">Completed</div>
+                <div class="stat-val" id="s-done">0 / 9</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Level</div>
+                <div class="stat-val" id="s-level">Beginner</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Progress</div>
+                <div class="stat-val" id="s-pct">0%</div>
+            </div>
+        </div>
+        <div class="progress-wrap">
+            <div class="progress-fill" id="pbar"></div>
+        </div>
+        <div class="tabs">
+            <button class="tab active" onclick="filter('all',this)">All</button>
+            <button class="tab" onclick="filter('beginner',this)">Beginner</button>
+            <button class="tab" onclick="filter('intermediate',this)">Intermediate</button>
+            <button class="tab" onclick="filter('advanced',this)">Advanced</button>
+        </div>
+        <div id="lessons"></div>
+    </div>
+    <script>
+        const L = [
+            {
+                id: 1, level: 'beginner', title: 'Swagger vs Scalar — which UI to use', sub: 'OpenAPI spec, Swagger UI, Scalar UI, tradeoffs',
+                concept: 'Both Swagger UI and Scalar read the same OpenAPI JSON spec — they are just different visual interfaces. Swagger UI is the classic, widely recognised interactive explorer. Scalar is a modern, beautifully designed alternative with better DX: collapsible request examples, improved code generation, and a cleaner layout. You can serve both simultaneously from the same NestJS app.',
+                compare: [
+                    { name: 'Swagger UI', color: '#f59e0b', items: ['Industry standard, universally recognised', 'Built-in try-it-out console', '@nestjs/swagger official support', 'Dense but familiar layout', 'Good for internal/developer docs'] },
+                    { name: 'Scalar', color: '#6899f8', items: ['Modern, visually polished UI', 'Better code sample generation', 'Dark mode by default', 'Ideal for public-facing API docs', 'Drop-in: reads the same OpenAPI JSON'] },
+                ],
+                code: `<span class="cm">// Both read the same OpenAPI spec at /api-json</span>
+<span class="cm">// Swagger UI → served at /api</span>
+<span class="cm">// Scalar     → served at /docs</span>
+
+<span class="cm">// Your OpenAPI spec (auto-generated by NestJS):</span>
+<span class="cm">// GET /api-json  → raw OpenAPI 3.0 JSON</span>
+<span class="cm">// GET /api-yaml  → same spec as YAML</span>
+
+<span class="cm">// Rule of thumb:</span>
+<span class="cm">// Internal team tooling  → Swagger UI (familiar, zero setup)</span>
+<span class="cm">// Public developer portal → Scalar (polished, modern)</span>
+<span class="cm">// Ship both              → trivial, costs nothing</span>`,
+                ex: {
+                    title: 'Exercise 1 — open both UIs side by side', body: 'Set up both Swagger UI and Scalar on a fresh NestJS app. Open both in the browser. Explore the same endpoint in each. Note the UX differences and decide which you prefer for public docs.',
+                    steps: ['Create a fresh app: nest new docs-demo', 'Install @nestjs/swagger and @scalar/nestjs-api-reference', 'Wire up both in main.ts (lessons 2 and 3 cover the exact code)', 'Start the server and open http://localhost:3000/api (Swagger)', 'Also open http://localhost:3000/docs (Scalar)', 'Create one GET /hello endpoint and explore how each UI renders it']
+                }
+            },
+
+            {
+                id: 2, level: 'beginner', title: '@nestjs/swagger setup and DocumentBuilder', sub: 'SwaggerModule, DocumentBuilder, openapi.json, serve UI',
+                concept: 'SwaggerModule.createDocument() introspects your NestJS app\'s decorators and builds an OpenAPI 3.0 spec at startup. DocumentBuilder is a fluent API to configure metadata: title, description, version, servers, and security schemes. The spec is served as JSON and the UI is mounted at your chosen path.',
+                code: `npm install @nestjs/swagger
+
+<span class="cm">// main.ts</span>
+<span class="kw">import</span> { <span class="cl">SwaggerModule</span>, <span class="cl">DocumentBuilder</span> } <span class="kw">from</span> <span class="str">'@nestjs/swagger'</span>;
+
+<span class="kw">async function</span> <span class="fn">bootstrap</span>() {
+  <span class="kw">const</span> app = <span class="kw">await</span> <span class="cl">NestFactory</span>.<span class="fn">create</span>(<span class="cl">AppModule</span>);
+
+  <span class="kw">const</span> config = <span class="kw">new</span> <span class="cl">DocumentBuilder</span>()
+    .<span class="fn">setTitle</span>(<span class="str">'My SaaS API'</span>)
+    .<span class="fn">setDescription</span>(<span class="str">'Multi-tenant SaaS REST API'</span>)
+    .<span class="fn">setVersion</span>(<span class="str">'1.0'</span>)
+    .<span class="fn">addServer</span>(<span class="str">'http://localhost:3000'</span>, <span class="str">'Local'</span>)
+    .<span class="fn">addServer</span>(<span class="str">'https://api.myapp.com'</span>, <span class="str">'Production'</span>)
+    .<span class="fn">addBearerAuth</span>()          <span class="cm">// JWT auth button in UI</span>
+    .<span class="fn">build</span>();
+
+  <span class="kw">const</span> document = <span class="cl">SwaggerModule</span>.<span class="fn">createDocument</span>(app, config);
+
+  <span class="cm">// Swagger UI at /api</span>
+  <span class="cl">SwaggerModule</span>.<span class="fn">setup</span>(<span class="str">'api'</span>, app, document, {
+    swaggerOptions: { persistAuthorization: <span class="kw">true</span> },
+  });
+
+  <span class="kw">await</span> app.<span class="fn">listen</span>(<span class="nl">3000</span>);
+}`,
+                ex: {
+                    title: 'Exercise 2 — set up Swagger with full metadata', body: 'Add SwaggerModule to your NestJS app with a descriptive title, version, and two servers (local + production). Enable persistAuthorization so the JWT survives page refreshes. Verify the spec is available at /api-json.',
+                    steps: ['Install @nestjs/swagger', 'Build the DocumentBuilder config with title, description, version, two addServer() calls', 'Call SwaggerModule.createDocument() and SwaggerModule.setup("api", ...)', `Add swaggerOptions: { persistAuthorization: true } to keep the JWT across refreshes`, 'Open http://localhost:3000/api — confirm the UI loads', 'Open http://localhost:3000/api-json — confirm raw OpenAPI JSON is served']
+                }
+            },
+
+            {
+                id: 3, level: 'beginner', title: 'Scalar UI setup', sub: '@scalar/nestjs-api-reference, themes, custom logo, config',
+                concept: 'Scalar is wired up in one line using apiReference middleware that points at your existing OpenAPI JSON endpoint. You can customise the theme, spec URL, sidebar layout, and branding without touching the spec itself.',
+                code: `npm install @scalar/nestjs-api-reference
+
+<span class="cm">// main.ts — add after SwaggerModule.setup()</span>
+<span class="kw">import</span> { apiReference } <span class="kw">from</span> <span class="str">'@scalar/nestjs-api-reference'</span>;
+
+app.<span class="fn">use</span>(
+  <span class="str">'/docs'</span>,
+  <span class="fn">apiReference</span>({
+    spec: { url: <span class="str">'/api-json'</span> },      <span class="cm">// reuse NestJS OpenAPI spec</span>
+    theme: <span class="str">'saturn'</span>,                 <span class="cm">// purple + dark</span>
+    <span class="cm">// other themes: default, moon, mars, kepler, solarized</span>
+    layout: <span class="str">'modern'</span>,
+    defaultHttpClient: {
+      targetKey: <span class="str">'javascript'</span>,
+      clientKey: <span class="str">'fetch'</span>,             <span class="cm">// default code sample language</span>
+    },
+    metaData: {
+      title: <span class="str">'My SaaS API — Reference'</span>,
+    },
+  }),
+);
+
+<span class="cm">// Now available at:</span>
+<span class="cm">// /api   → Swagger UI</span>
+<span class="cm">// /docs  → Scalar UI  (same spec, different look)</span>`,
+                ex: {
+                    title: 'Exercise 3 — serve Scalar alongside Swagger', body: 'Add Scalar to your app at /docs pointing at /api-json. Try all available themes (default, moon, saturn, mars, kepler, solarized) and pick your favourite. Confirm both UIs reflect the same endpoints.',
+                    steps: ['Install @scalar/nestjs-api-reference', 'Add app.use("/docs", apiReference({ spec: { url: "/api-json" } })) after SwaggerModule.setup()', 'Try changing the theme: "moon", "saturn", "mars", "solarized"', 'Open /docs — verify all existing endpoints are visible', 'Change defaultHttpClient to "python" + "requests" and reload — see code samples update', 'Add a new controller — confirm both /api and /docs show it immediately']
+                }
+            },
+
+            {
+                id: 4, level: 'beginner', title: 'Documenting controllers and routes', sub: '@ApiTags, @ApiOperation, @ApiResponse, @ApiParam',
+                concept: 'NestJS Swagger decorators annotate your controllers with human-readable metadata. @ApiTags groups routes in the sidebar. @ApiOperation adds a summary and description. @ApiResponse documents possible HTTP responses. @ApiParam documents path parameters. These map directly to the OpenAPI spec.',
+                code: `<span class="kw">import</span> { <span class="cl">ApiTags</span>, <span class="cl">ApiOperation</span>, <span class="cl">ApiResponse</span>, <span class="cl">ApiParam</span> } <span class="kw">from</span> <span class="str">'@nestjs/swagger'</span>;
+
+<span class="dec">@ApiTags</span>(<span class="str">'Products'</span>)             <span class="cm">// groups routes under "Products"</span>
+<span class="dec">@Controller</span>(<span class="str">'products'</span>)
+<span class="kw">export class</span> <span class="cl">ProductsController</span> {
+
+  <span class="dec">@Get</span>()
+  <span class="dec">@ApiOperation</span>({ summary: <span class="str">'List all products'</span>, description: <span class="str">'Returns paginated products for the current tenant.'</span> })
+  <span class="dec">@ApiResponse</span>({ status: <span class="nl">200</span>, description: <span class="str">'Paginated product list'</span>, type: [<span class="cl">ProductDto</span>] })
+  <span class="dec">@ApiResponse</span>({ status: <span class="nl">401</span>, description: <span class="str">'Unauthorized'</span> })
+  <span class="fn">findAll</span>() { ... }
+
+  <span class="dec">@Get</span>(<span class="str">':id'</span>)
+  <span class="dec">@ApiOperation</span>({ summary: <span class="str">'Get product by ID'</span> })
+  <span class="dec">@ApiParam</span>({ name: <span class="str">'id'</span>, description: <span class="str">'MongoDB ObjectId'</span>, example: <span class="str">'64a7f...'</span> })
+  <span class="dec">@ApiResponse</span>({ status: <span class="nl">200</span>, type: <span class="cl">ProductDto</span> })
+  <span class="dec">@ApiResponse</span>({ status: <span class="nl">404</span>, description: <span class="str">'Product not found'</span> })
+  <span class="fn">findOne</span>(<span class="dec">@Param</span>(<span class="str">'id'</span>) id: string) { ... }
+}`,
+                ex: {
+                    title: 'Exercise 4 — fully document a CRUD controller', body: 'Add @ApiTags, @ApiOperation, @ApiParam, and @ApiResponse to every route in your ProductsController. Document all realistic status codes (200, 201, 400, 401, 403, 404). Verify the Swagger UI sidebar groups them correctly.',
+                    steps: ['Add @ApiTags("Products") to the controller class', 'Add @ApiOperation({ summary, description }) to each route handler', 'Add @ApiResponse for every status code the route can return', 'Add @ApiParam to routes with :id path parameters', 'Open /api — confirm Products group appears in the sidebar', 'Check that clicking each route shows the correct status codes and descriptions']
+                }
+            },
+
+            {
+                id: 5, level: 'intermediate', title: 'Documenting DTOs with @ApiProperty', sub: '@ApiProperty, @ApiPropertyOptional, enums, nested objects, examples',
+                concept: '@ApiProperty() tells the spec generator the shape of your request and response bodies. Without it, the schema shows as {} in the UI. Combined with class-validator decorators, @ApiProperty() produces accurate, self-validating, self-documenting DTOs.',
+                code: `<span class="kw">import</span> { <span class="cl">ApiProperty</span>, <span class="cl">ApiPropertyOptional</span> } <span class="kw">from</span> <span class="str">'@nestjs/swagger'</span>;
+
+<span class="kw">export class</span> <span class="cl">CreateProductDto</span> {
+  <span class="dec">@ApiProperty</span>({ example: <span class="str">'Wireless Headphones'</span>, description: <span class="str">'Product display name'</span> })
+  <span class="dec">@IsString</span>() <span class="dec">@IsNotEmpty</span>()
+  name: string;
+
+  <span class="dec">@ApiProperty</span>({ example: <span class="nl">49.99</span>, minimum: <span class="nl">0</span> })
+  <span class="dec">@IsNumber</span>() <span class="dec">@Min</span>(<span class="nl">0</span>)
+  price: number;
+
+  <span class="dec">@ApiProperty</span>({ enum: <span class="cl">Category</span>, enumName: <span class="str">'Category'</span> })
+  <span class="dec">@IsEnum</span>(<span class="cl">Category</span>)
+  category: <span class="cl">Category</span>;
+
+  <span class="dec">@ApiPropertyOptional</span>({ example: <span class="str">'High-quality wireless audio'</span> })
+  <span class="dec">@IsOptional</span>() <span class="dec">@IsString</span>()
+  description?: string;
+
+  <span class="dec">@ApiProperty</span>({ type: () => <span class="cl">DimensionsDto</span> })  <span class="cm">// nested object</span>
+  dimensions: <span class="cl">DimensionsDto</span>;
+}`,
+                ex: {
+                    title: 'Exercise 5 — fully typed DTOs with examples', body: 'Add @ApiProperty to every field of CreateProductDto, UpdateProductDto, and ProductResponseDto. Include examples on all fields. Verify the Swagger UI "Schema" tab and "Example Value" sections show real data.',
+                    steps: ['Add @ApiProperty({ example, description }) to every field of CreateProductDto', 'Use @ApiPropertyOptional for optional fields', 'Add enumName to enum fields so they appear as a reusable type in the spec', 'Add type: () => NestedDto for nested objects (circular-safe arrow function)', 'Open /api → POST /products → expand "Request body" — confirm the example values appear', 'Confirm the "Schema" tab shows types, minimums, and enum values']
+                }
+            },
+
+            {
+                id: 6, level: 'intermediate', title: 'JWT auth in Swagger UI — @ApiBearerAuth', sub: 'addBearerAuth, @ApiBearerAuth, authorize button, API keys',
+                concept: 'To test protected endpoints in the Swagger UI, configure a security scheme and mark routes that require it. addBearerAuth() in DocumentBuilder adds the Authorize button. @ApiBearerAuth() on a controller or route tells Swagger that endpoint needs the token. The UI then sends Authorization: Bearer <token> automatically.',
+                code: `<span class="cm">// main.ts — configure the security scheme</span>
+<span class="kw">new</span> <span class="cl">DocumentBuilder</span>()
+  .<span class="fn">addBearerAuth</span>(
+    { type: <span class="str">'http'</span>, scheme: <span class="str">'bearer'</span>, bearerFormat: <span class="str">'JWT'</span> },
+    <span class="str">'access-token'</span>,  <span class="cm">// name — referenced in @ApiBearerAuth()</span>
+  )
+  .<span class="fn">addApiKey</span>(        <span class="cm">// optional: also support API keys</span>
+    { type: <span class="str">'apiKey'</span>, in: <span class="str">'header'</span>, name: <span class="str">'X-API-Key'</span> },
+    <span class="str">'api-key'</span>,
+  )
+  .<span class="fn">build</span>();
+
+<span class="cm">// controller — require JWT on all routes in this controller</span>
+<span class="dec">@ApiBearerAuth</span>(<span class="str">'access-token'</span>)
+<span class="dec">@UseGuards</span>(<span class="cl">JwtAuthGuard</span>)
+<span class="dec">@ApiTags</span>(<span class="str">'Products'</span>)
+<span class="dec">@Controller</span>(<span class="str">'products'</span>)
+<span class="kw">export class</span> <span class="cl">ProductsController</span> { ... }
+
+<span class="cm">// Skip auth on a specific route in a protected controller</span>
+<span class="dec">@ApiSecurity</span>([])  <span class="cm">// override: no auth required</span>
+<span class="dec">@Get</span>(<span class="str">'public'</span>)
+<span class="fn">publicEndpoint</span>() { ... }`,
+                ex: {
+                    title: 'Exercise 6 — test protected routes from Swagger UI', body: 'Configure addBearerAuth in DocumentBuilder. Apply @ApiBearerAuth to your ProductsController. Log in via POST /auth/login, copy the JWT, paste it into the Authorize dialog, then test a protected route.',
+                    steps: ['Add .addBearerAuth({ type: "http", scheme: "bearer", bearerFormat: "JWT" }, "access-token") to DocumentBuilder', 'Add @ApiBearerAuth("access-token") to ProductsController class', 'Also add @ApiResponse({ status: 401, description: "Unauthorized" }) to all routes', 'Open /api — click the "Authorize" button and paste a valid JWT', 'Try GET /products — confirm it returns 200 with the token applied', 'Remove the token and try again — confirm 401']
+                }
+            },
+
+            {
+                id: 7, level: 'intermediate', title: 'Organising large APIs — tags, modules, and versions', sub: 'Tag groups, multiple documents, API versioning in Swagger',
+                concept: 'Large APIs need organisation. Use @ApiTags to group endpoints logically in the sidebar. For multi-version APIs, create separate Swagger documents per version. For internal vs public APIs, create two separate specs from the same app — one with @ApiExcludeController() on internal routes.',
+                code: `<span class="cm">// Tag groups using Swagger extensions (x-tagGroups)</span>
+<span class="kw">const</span> options = <span class="kw">new</span> <span class="cl">DocumentBuilder</span>()
+  .<span class="fn">setTitle</span>(<span class="str">'My API'</span>)
+  .<span class="fn">build</span>();
+
+<span class="kw">const</span> doc = <span class="cl">SwaggerModule</span>.<span class="fn">createDocument</span>(app, options);
+
+<span class="cm">// Inject x-tagGroups for Redoc/Scalar sidebar sections</span>
+(doc <span class="kw">as any</span>)[<span class="str">'x-tagGroups'</span>] = [
+  { name: <span class="str">'Authentication'</span>, tags: [<span class="str">'Auth'</span>] },
+  { name: <span class="str">'Catalog'</span>,        tags: [<span class="str">'Products'</span>, <span class="str">'Categories'</span>] },
+  { name: <span class="str">'Orders'</span>,         tags: [<span class="str">'Orders'</span>, <span class="str">'Shipping'</span>] },
+  { name: <span class="str">'Admin'</span>,          tags: [<span class="str">'Users'</span>, <span class="str">'Tenants'</span>] },
+];
+
+<span class="cm">// Hide internal routes from the public spec</span>
+<span class="dec">@ApiExcludeController</span>()          <span class="cm">// entire controller hidden</span>
+<span class="dec">@Controller</span>(<span class="str">'internal/metrics'</span>)
+<span class="kw">export class</span> <span class="cl">InternalController</span> { ... }
+
+<span class="cm">// Hide a single route</span>
+<span class="dec">@ApiExcludeEndpoint</span>()
+<span class="dec">@Get</span>(<span class="str">'debug'</span>)
+<span class="fn">debug</span>() { ... }`,
+                ex: {
+                    title: 'Exercise 7 — two specs: public and internal', body: 'Create two separate Swagger documents from the same app. The public spec (at /docs) excludes all admin and internal controllers using @ApiExcludeController(). The internal spec (at /internal/api) includes everything.',
+                    steps: ['Add @ApiExcludeController() to your admin/internal controllers', 'Create two DocumentBuilder configs: publicConfig and internalConfig', 'Call SwaggerModule.createDocument() twice with includeModules options', 'Mount public spec at /api and internal spec at /internal/api', 'Open both UIs and verify the admin routes only appear in /internal/api', 'Protect /internal/api with basic auth or IP allowlist middleware']
+                }
+            },
+
+            {
+                id: 8, level: 'advanced', title: 'Generating OpenAPI spec at build time for CI', sub: 'CLI plugin, spec export, client generation, contract testing',
+                concept: 'Maintaining hand-written docs that drift from the code is the #1 docs problem. The solution: generate the OpenAPI spec automatically at build time and commit it. Use the CLI plugin to infer @ApiProperty from TypeScript types (zero extra decorators), export the spec as a JSON file, and generate typed client SDKs from it in CI.',
+                code: `<span class="cm">// 1. Enable the CLI plugin in nest-cli.json</span>
+{
+  <span class="str">"compilerOptions"</span>: {
+    <span class="str">"plugins"</span>: [{
+      <span class="str">"name"</span>: <span class="str">"@nestjs/swagger"</span>,
+      <span class="str">"options"</span>: {
+        <span class="str">"introspectComments"</span>: <span class="kw">true</span>,    <span class="cm">// JSDoc → description</span>
+        <span class="str">"classValidatorShim"</span>: <span class="kw">true</span>     <span class="cm">// infer from @IsString etc</span>
+      }
+    }]
+  }
+}
+
+<span class="cm">// 2. Export spec to file (generate-spec.ts)</span>
+<span class="kw">const</span> app = <span class="kw">await</span> <span class="cl">NestFactory</span>.<span class="fn">create</span>(<span class="cl">AppModule</span>, { logger: <span class="kw">false</span> });
+<span class="kw">const</span> document = <span class="cl">SwaggerModule</span>.<span class="fn">createDocument</span>(app, config);
+<span class="fn">writeFileSync</span>(<span class="str">'./openapi.json'</span>, <span class="cl">JSON</span>.<span class="fn">stringify</span>(document, <span class="kw">null</span>, <span class="nl">2</span>));
+<span class="kw">await</span> app.<span class="fn">close</span>();
+
+<span class="cm">// 3. CI: generate and diff</span>
+<span class="cm"># package.json</span>
+<span class="str">"generate:spec"</span>: <span class="str">"ts-node generate-spec.ts"</span>
+<span class="cm"># GitHub Actions: fail PR if spec changes without update</span>
+<span class="cm">run: npm run generate:spec && git diff --exit-code openapi.json</span>`,
+                ex: {
+                    title: 'Exercise 8 — commit the spec and generate a typed client', body: 'Enable the CLI plugin, write a generate-spec.ts script that exports openapi.json, and use openapi-typescript to generate a typed client. Add a CI check that fails if the spec changes without a commit.',
+                    steps: ['Add the @nestjs/swagger CLI plugin to nest-cli.json', 'Write generate-spec.ts that bootstraps the app, creates the document, and writes openapi.json', 'Add "generate:spec": "ts-node generate-spec.ts" to package.json scripts', 'Run npm run generate:spec — verify openapi.json is created', 'Install openapi-typescript: npm install -D openapi-typescript', 'Run: npx openapi-typescript openapi.json -o src/types/api.d.ts', 'Add a GitHub Actions step that runs generate:spec and checks git diff --exit-code openapi.json']
+                }
+            },
+
+            {
+                id: 9, level: 'advanced', title: 'Advanced patterns: response wrappers, polymorphism, and versioning', sub: 'ApiExtraModels, getSchemaPath, oneOf, discriminator, API versioning',
+                concept: 'Real APIs return envelope responses ({ data, meta, error }), union types (a response that can be a Product or a Bundle), and multiple API versions. These patterns require advanced OpenAPI features: getSchemaPath() for generic wrapper types, oneOf/discriminator for union schemas, and separate Swagger documents per version.',
+                code: `<span class="cm">// Generic pagination wrapper — register extra models</span>
+<span class="dec">@ApiExtraModels</span>(<span class="cl">PaginatedDto</span>, <span class="cl">ProductDto</span>)
+<span class="dec">@ApiResponse</span>({
+  status: <span class="nl">200</span>,
+  schema: {
+    allOf: [
+      { $ref: <span class="fn">getSchemaPath</span>(<span class="cl">PaginatedDto</span>) },
+      { properties: { data: { type: <span class="str">'array'</span>,
+          items: { $ref: <span class="fn">getSchemaPath</span>(<span class="cl">ProductDto</span>) }
+      }}},
+    ],
+  },
+})
+<span class="fn">findAll</span>(): <span class="cl">PaginatedDto</span>&lt;<span class="cl">ProductDto</span>&gt; { ... }
+
+<span class="cm">// Polymorphic response: Product | Bundle</span>
+<span class="dec">@ApiResponse</span>({
+  schema: {
+    oneOf: [
+      { $ref: <span class="fn">getSchemaPath</span>(<span class="cl">ProductDto</span>) },
+      { $ref: <span class="fn">getSchemaPath</span>(<span class="cl">BundleDto</span>) },
+    ],
+    discriminator: {
+      propertyName: <span class="str">'type'</span>,
+      mapping: { product: <span class="fn">getSchemaPath</span>(<span class="cl">ProductDto</span>), bundle: <span class="fn">getSchemaPath</span>(<span class="cl">BundleDto</span>) },
+    },
+  },
+})
+<span class="fn">getItem</span>(id: string) { ... }`,
+                ex: {
+                    title: 'Exercise 9 — generic wrapper and versioned specs', body: 'Build a PaginatedDto<T> generic wrapper and document it correctly using ApiExtraModels + getSchemaPath. Then create two API versions (v1, v2) served as separate Swagger documents at /api/v1 and /api/v2.',
+                    steps: ['Create PaginatedDto<T> with data: T[], total: number, page: number, pages: number', 'Register @ApiExtraModels(PaginatedDto, ProductDto) on the controller', 'Use allOf + getSchemaPath to document the generic response', 'Enable NestJS versioning: app.enableVersioning({ type: VersioningType.URI })', 'Create two DocumentBuilder configs filtered by include: modules per version', 'Mount v1 spec at /api/v1 and v2 spec at /api/v2 — confirm each shows only its routes']
+                }
+            }
+        ];
+
+        const done = new Set(JSON.parse(localStorage.getItem('swagger-scalar-done') || '[]'));
+        function save() { try { localStorage.setItem('swagger-scalar-done', JSON.stringify([...done])) } catch (e) { } }
+        function updateStats() {
+            const n = done.size, t = L.length;
+            document.getElementById('s-done').textContent = n + ' / ' + t;
+            document.getElementById('s-pct').textContent = Math.round(n / t * 100) + '%';
+            document.getElementById('pbar').style.width = (n / t * 100) + '%';
+            document.getElementById('s-level').textContent = n < 4 ? 'Beginner' : n < 7 ? 'Intermediate' : 'Advanced';
+        }
+        function render(f) {
+            const c = document.getElementById('lessons'); c.innerHTML = '';
+            L.filter(l => f === 'all' || l.level === f).forEach(l => {
+                const d = done.has(l.id);
+                const compareHtml = l.compare ? `<div class="compare-grid">${l.compare.map(x => `<div class="compare-card"><div class="compare-name"><div class="compare-dot" style="background:${x.color}"></div>${x.name}</div><ul class="compare-items">${x.items.map(i => `<li>${i}</li>`).join('')}</ul></div>`).join('')}</div>` : '';
+                const tipHtml = l.tip ? `<div class="tip-box"><strong>Tip:</strong> ${l.tip}</div>` : '';
+                const el = document.createElement('div'); el.className = 'card';
+                el.innerHTML = `<div class="card-header" onclick="toggle(${l.id})">
+      <div class="num ${d ? 'done' : ''}" id="n${l.id}">${d ? '✓' : l.id}</div>
+      <div class="title-wrap">
+        <div class="lesson-title">${l.title}<span class="badge ${l.level}">${l.level}</span></div>
+        <div class="lesson-sub">${l.sub}</div>
+      </div>
+      <div class="chevron" id="ch${l.id}">›</div>
+    </div>
+    <div class="card-body" id="b${l.id}">
+      <div class="concept-box"><div class="section-label">Concept</div><p class="concept-text">${l.concept}</p></div>
+      ${compareHtml}
+      ${tipHtml}
+      <pre>${l.code}</pre>
+      <div class="ex-box">
+        <div class="ex-title">${l.ex.title}</div>
+        <p class="ex-body">${l.ex.body}</p>
+        ${l.ex.steps ? '<ul class="steps">' + l.ex.steps.map(s => `<li>${s}</li>`).join('') + '</ul>' : ''}
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-done ${d ? 'active' : ''}" id="mb${l.id}" onclick="mark(${l.id})">${d ? '✓ Completed' : 'Mark complete'}</button>
+      </div>
+    </div>`;
+                c.appendChild(el);
+            });
+        }
+        function toggle(id) { const b = document.getElementById('b' + id), ch = document.getElementById('ch' + id); const o = b.classList.toggle('open'); ch.style.transform = o ? 'rotate(90deg)' : ''; }
+        function mark(id) {
+            done.has(id) ? done.delete(id) : done.add(id); save(); updateStats();
+            const b = document.getElementById('mb' + id), n = document.getElementById('n' + id);
+            if (done.has(id)) { b.classList.add('active'); b.textContent = '✓ Completed'; n.classList.add('done'); n.textContent = '✓'; }
+            else { b.classList.remove('active'); b.textContent = 'Mark complete'; n.classList.remove('done'); n.textContent = id; }
+        }
+        function filter(f, el) { document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); el.classList.add('active'); render(f); }
+        render('all'); updateStats();
+    </script>
+</body>
+
+</html>
