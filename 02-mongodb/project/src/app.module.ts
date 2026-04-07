@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ProductsModule } from './products/products.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -11,10 +12,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI') ?? 'mongodb://localhost:27017/nestjs-mongodb',
+        uri: configService.get<string>('MONGODB_URI') ?? 'mongodb://172.18.0.3:27017/nest-practice',
       }),
     }),
-    ProductsModule
+    ProductsModule,
+    UserModule
   ],
   controllers: [AppController],
   providers: [AppService],
