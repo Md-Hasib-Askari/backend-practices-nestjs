@@ -4,6 +4,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Product, ProductDocument } from './products.schema';
 import { Model } from 'mongoose';
+import { QueryDto } from './dto/query.dto';
 
 @Injectable()
 export class ProductsService {
@@ -21,6 +22,32 @@ export class ProductsService {
       throw new Error('No products found');
     }
     return products;
+  }
+
+  async findAllWithQuery(queryDto: QueryDto) {
+    const { page = 1, limit = 10, sort, search } = queryDto;
+    const filter: Record<string, unknown> = {};
+
+    if (search) {
+      filter['name'] = new RegExp(search, 'i');
+    }
+
+    const [data, total] = await Promise.all([
+      this.productModel
+        .find(filter)
+        .sort(sort ?? '')
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec(),
+      this.productModel.countDocuments(filter),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    };
   }
 
   findOne(id: string) {

@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, Query } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { QueryDto } from './dto/query.dto';
 
 @Controller('products')
 @ApiTags('products')
@@ -15,8 +16,8 @@ export class ProductsController {
   }
 
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  findAll(@Query() queryDto: QueryDto) {
+    return this.productsService.findAllWithQuery(queryDto);
   }
 
   @Get(':id')
