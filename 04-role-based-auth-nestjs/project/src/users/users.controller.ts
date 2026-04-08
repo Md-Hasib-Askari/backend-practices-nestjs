@@ -5,6 +5,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/enums/roles.enum';
 
 @Controller('users')
   @UseGuards(JwtAuthGuard)
@@ -12,14 +13,14 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @UseGuards(RolesGuard)
-  @Roles('admin')
+  @Roles(Role.Admin)
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
   @Get()
-  @Roles('admin')
+  @Roles(Role.Admin, Role.Editor)
   @UseGuards(RolesGuard)
   async findAll() {
     return this.usersService.findAll();
@@ -42,7 +43,7 @@ export class UsersController {
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles('admin')
+  @Roles(Role.Admin)
   async remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
