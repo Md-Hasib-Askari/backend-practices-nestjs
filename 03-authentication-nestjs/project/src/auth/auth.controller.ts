@@ -3,13 +3,18 @@ import {
   ClassSerializerInterceptor,
   Controller,
   Post,
+  Res,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiCreatedResponse } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiParam } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { RegisterResponseDto } from './dto/register-response.dto';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -26,5 +31,16 @@ export class AuthController {
     return plainToInstance(RegisterResponseDto, plainUser, {
       excludeExtraneousValues: true,
     });
+  }
+
+  @Post('login')
+  async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    const { access_token } = await this.authService.login(loginDto);
+    res.cookie('access_token', access_token, {
+      httpOnly: true,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+    });
+    return { message: 'Login successful' };
   }
 }
