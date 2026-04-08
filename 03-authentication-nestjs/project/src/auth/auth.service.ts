@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from 'src/users/users.service';
@@ -8,7 +8,8 @@ import { LoginDto } from './dto/login.dto';
 export class AuthService {
     constructor(
         private readonly jwtService: JwtService,
-        private readonly usersService: UsersService
+        private readonly usersService: UsersService,
+        private readonly logger: Logger
     ) { }
 
     async hashPassword(password: string): Promise<string> {
@@ -47,7 +48,7 @@ export class AuthService {
         if (!user) {
             return { message: 'Invalid credentials' };
         }
-        const payload = { email: user.email, sub: user.id };
+        const payload = { email: user.email, sub: user._id };
         return {
             access_token: this.jwtService.sign(payload),
         };
