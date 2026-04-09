@@ -50,7 +50,7 @@ export class UsersController {
 
     @Patch(':id/role')
     @UseGuards(PermissionsGuard)
-    @RequirePermissions('roles:update')
+    @RequirePermissions('roles:manage')
     assignRole(@Param('id') id: string, @Body() dto: AssignRoleDto, @Req() req: Request) {
         const tenantId = (req as any).tenantId as string;
         return this.usersService.assignRole(id, dto.role, tenantId);
