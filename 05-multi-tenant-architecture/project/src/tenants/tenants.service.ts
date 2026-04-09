@@ -20,15 +20,15 @@ export class TenantsService {
     return this.tenantModel.find().exec();
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     return this.tenantModel.findById(id).exec();
   }
 
-  async update(id: number, updateTenantDto: UpdateTenantDto) {
+  async update(id: string, updateTenantDto: UpdateTenantDto) {
     return this.tenantModel.findByIdAndUpdate(id, updateTenantDto, { new: true }).exec();
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     return this.tenantModel.findByIdAndDelete(id).exec();
   }
 }

@@ -24,16 +24,26 @@ export class TenantsController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.tenantsService.findOne(+id);
+    return this.tenantsService.findOne(id);
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateTenantDto: UpdateTenantDto) {
-    return this.tenantsService.update(+id, updateTenantDto);
+    return this.tenantsService.update(id, updateTenantDto);
+  }
+
+  @Patch(':id/activate')
+  async activate(@Param('id') id: string) {
+    return this.tenantsService.update(id, { isActive: true });
+  }
+
+  @Patch(':id/deactivate')
+  async deactivate(@Param('id') id: string) {
+    return this.tenantsService.update(id, { isActive: false });
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return this.tenantsService.remove(+id);
+    return this.tenantsService.remove(id);
   }
 }
