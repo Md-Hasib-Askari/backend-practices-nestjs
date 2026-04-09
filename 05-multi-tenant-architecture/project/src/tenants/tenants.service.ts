@@ -1,26 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Tenant } from './tenants.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class TenantsService {
-  create(createTenantDto: CreateTenantDto) {
-    return 'This action adds a new tenant';
+  constructor(
+    @InjectModel(Tenant.name) private tenantModel: Model<Tenant>,
+  ) { }
+
+  async create(createTenantDto: CreateTenantDto) {
+    const createdTenant = new this.tenantModel(createTenantDto);
+    return createdTenant.save();
   }
 
-  findAll() {
-    return `This action returns all tenants`;
+  async findAll() {
+    return this.tenantModel.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} tenant`;
+  async findOne(id: number) {
+    return this.tenantModel.findById(id).exec();
   }
 
-  update(id: number, updateTenantDto: UpdateTenantDto) {
-    return `This action updates a #${id} tenant`;
+  async update(id: number, updateTenantDto: UpdateTenantDto) {
+    return this.tenantModel.findByIdAndUpdate(id, updateTenantDto, { new: true }).exec();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} tenant`;
+  async remove(id: number) {
+    return this.tenantModel.findByIdAndDelete(id).exec();
   }
 }
