@@ -21,4 +21,30 @@ export class UsersService {
     async findById(id: string) {
         return this.userModel.findById(id).exec();
     }
+
+    async findAll(tenantId: string) {
+        return this.userModel.find({ tenantId }).exec();
+    }
+
+    async findOne(id: string, tenantId: string) {
+        return this.userModel.findOne({ _id: id, tenantId }).exec();
+    }
+
+    async update(id: string, updateUserDto: Partial<CreateUserDto>, tenantId: string) {
+        return this.userModel.findOneAndUpdate({ _id: id, tenantId }, updateUserDto, { new: true }).exec();
+    }
+
+    async remove(id: string, tenantId: string) {
+        return this.userModel.findOneAndDelete({ _id: id, tenantId }).exec();
+    }
+
+    async assignRole(id: string, role: string, tenantId: string) {
+        const user = await this.userModel.findOneAndUpdate(
+            { _id: id, tenantId },
+            { role },
+            { new: true },
+        ).exec();
+        if (!user) throw new Error('User not found');
+        return user;
+    }
 }

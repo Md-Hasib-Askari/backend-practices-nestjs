@@ -15,4 +15,9 @@ export class CreateUserDto {
     @IsString()
     @MinLength(6)
     password!: string;
+
+    @ApiProperty({ example: '60d0fe4f5311236168a109ca', description: 'The role ID of the user' })
+    @IsString()
+    @IsNotEmpty()
+    roleId!: string;
 }
