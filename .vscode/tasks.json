@@ -1,0 +1,23 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start NestJS Backend",
+            "type": "shell",
+            "command": "pnpm start:dev",
+            "options": {
+                "cwd": "${workspaceFolder}/${input:exerciseFolder}/project"
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "exerciseFolder",
+            "type": "promptString",
+            "description": "Exercise folder under workspace root",
+            "default": "04-role-based-auth-nestjs"
+        }
+    ]
+}
