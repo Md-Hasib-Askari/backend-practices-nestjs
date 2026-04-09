@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { ApiHeader, ApiTags } from '@nestjs/swagger';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -16,31 +17,36 @@ export class PostsController {
 
     @Post()
     @RequirePermissions('posts:create')
-    async create(@Body() createPostDto: CreatePostDto) {
-        return this.postsService.create(createPostDto);
+    async create(@Body() createPostDto: CreatePostDto, @Req() req: Request) {
+        const tenantId = req.headers['x-tenant-id'] as string;
+        return this.postsService.create(createPostDto, tenantId);
     }
 
     @Get()
     @RequirePermissions('posts:read')
-    async findAll() {
-        return this.postsService.findAll();
+    async findAll(@Req() req: Request) {
+        const tenantId = req.headers['x-tenant-id'] as string;
+        return this.postsService.findAll(tenantId);
     }
 
     @Get(':id')
     @RequirePermissions('posts:read')
-    async findOne(@Param('id') id: string) {
-        return this.postsService.findOne(id);
+    async findOne(@Param('id') id: string, @Req() req: Request) {
+        const tenantId = req.headers['x-tenant-id'] as string;
+        return this.postsService.findOne(id, tenantId);
     }
 
     @Patch(':id')
     @RequirePermissions('posts:update')
-    async update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-        return this.postsService.update(id, updatePostDto);
+    async update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto, @Req() req: Request) {
+        const tenantId = req.headers['x-tenant-id'] as string;
+        return this.postsService.update(id, updatePostDto, tenantId);
     }
 
     @Delete(':id')
     @RequirePermissions('posts:delete')
-    async remove(@Param('id') id: string) {
-        return this.postsService.remove(id);
+    async remove(@Param('id') id: string, @Req() req: Request) {
+        const tenantId = req.headers['x-tenant-id'] as string;
+        return this.postsService.remove(id, tenantId);
     }
 }

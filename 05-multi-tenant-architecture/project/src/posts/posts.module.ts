@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PostsService } from './posts.service';
 import { PostsController } from './posts.controller';
-import { TenantAwareRepository } from './posts.repository';
 import { Post, PostSchema } from './posts.schema';
 import { AuthModule } from '../auth/auth.module';
 
@@ -12,6 +11,6 @@ import { AuthModule } from '../auth/auth.module';
         AuthModule,
     ],
     controllers: [PostsController],
-    providers: [PostsService, TenantAwareRepository],
+    providers: [PostsService],
 })
 export class PostsModule { }

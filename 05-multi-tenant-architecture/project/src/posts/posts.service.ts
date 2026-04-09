@@ -1,34 +1,39 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { TenantAwareRepository } from './posts.repository';
+import { InjectModel } from '@nestjs/mongoose';
+import { Post, PostDocument } from './posts.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class PostsService {
-    constructor(private readonly repository: TenantAwareRepository) { }
+    constructor(
+        @InjectModel(Post.name) private readonly postModel: Model<PostDocument>,
 
-    create(createPostDto: CreatePostDto) {
-        return this.repository.create(createPostDto);
+    ) { }
+
+    create(createPostDto: CreatePostDto, tenantId: string) {
+        return this.postModel.create({ ...createPostDto, tenantId });
     }
 
-    findAll() {
-        return this.repository.find();
+    findAll(tenantId: string) {
+        return this.postModel.find({ tenantId }).exec();
     }
 
-    async findOne(id: string) {
-        const post = await this.repository.findById(id);
+    async findOne(id: string, tenantId: string) {
+        const post = await this.postModel.findOne({ _id: id, tenantId }).exec();
         if (!post) throw new NotFoundException(`Post ${id} not found`);
         return post;
     }
 
-    async update(id: string, updatePostDto: UpdatePostDto) {
-        const post = await this.repository.update(id, updatePostDto);
+    async update(id: string, updatePostDto: UpdatePostDto, tenantId: string) {
+        const post = await this.postModel.findOneAndUpdate({ _id: id, tenantId }, updatePostDto, { new: true }).exec();
         if (!post) throw new NotFoundException(`Post ${id} not found`);
         return post;
     }
 
-    async remove(id: string) {
-        const post = await this.repository.delete(id);
+    async remove(id: string, tenantId: string) {
+        const post = await this.postModel.findOneAndDelete({ _id: id, tenantId }).exec();
         if (!post) throw new NotFoundException(`Post ${id} not found`);
         return post;
     }
